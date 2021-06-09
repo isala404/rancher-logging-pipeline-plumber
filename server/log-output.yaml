@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-output
+  labels:
+    app: log-output
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-output
+  template:
+    metadata:
+      labels:
+        app: log-output
+    spec:
+      containers:
+        - image: paynejacob/log-output:latest
+          name: log-output
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          resources:
+            limits:
+              memory: 16Mi
+            requests:
+              memory: 8Mi
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        - key: cattle.io/os
+          operator: "Equal"
+          value: "linux"
+          effect: NoSchedule
