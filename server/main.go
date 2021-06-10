@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io/ioutil"
+	"log"
+	"net/http"
+
+	"github.com/gorilla/mux"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"log"
-	"net/http"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/yaml"
 )
 
@@ -79,10 +80,10 @@ func (o *Operator) DestroyLogOutput(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", "./kubeconfig.yaml")
+	// config, err := clientcmd.BuildConfigFromFlags("", "./kubeconfig.yaml")
 
 	// creates the in-cluster config
-	//config, err := rest.InClusterConfig()
+	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
 	}
