@@ -1,0 +1,34 @@
+{{- if .Values.serviceAccount.create -}}
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "rancher-logging-explorer.fullname" . }}
+rules:
+  - apiGroups: ["", "logging.banzaicloud.io", "apps"]
+    resources:
+      - clusterflows
+      - clusteroutputs
+      - flows
+      - outputs
+      - deploys
+      - pods
+      - deployments
+    verbs:
+      - delete
+      - create
+      - get
+      - list
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "rancher-logging-explorer.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    namespace: "default"
+    name: {{ include "rancher-logging-explorer.fullname" . }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "rancher-logging-explorer.fullname" . }}
+  apiGroup: "rbac.authorization.k8s.io"
+{{- end }}
