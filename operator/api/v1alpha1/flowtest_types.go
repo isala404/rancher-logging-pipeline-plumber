@@ -17,31 +17,24 @@ limitations under the License.
 package v1alpha1
 
 import (
-	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1/"
+	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// +kubebuilder:validation:Required
+
 // FlowTestSpec defines the desired state of FlowTest
 type FlowTestSpec struct {
-	// +kubebuilder:validation:Required
-	ReferencePod ReferenceObject `json:"referencePod"`
-	// +kubebuilder:validation:Required
+	ReferencePod  ReferenceObject `json:"referencePod"`
 	ReferenceFlow ReferenceObject `json:"referenceFlow"`
-	// +kubebuilder:validation:Required
-	Messages []string `json:"messages"`
-	// +kubebuilder:validation:Required
-	Match []flowv1beta1.Match `json:"match,omitempty"`
-	// +kubebuilder:validation:Required
-	Filters []flowv1beta1.Filter `json:"filters,omitempty"`
+	SentMessages  []string        `json:"sentMessages"` // Try to use a config map here
 }
 
 // FlowTestStatus defines the observed state of FlowTest
 type FlowTestStatus struct {
-	SimulationPod  ReferenceObject `json:"simulationPod"`
-	SimulationFlow ReferenceObject `json:"simulationFlow"`
-	OutputIndex    string          `json:"outputIndex"`
-	LogView        string          `json:"logView"`
-	// +kubebuilder:validation:Enum=Created,Running,Failed,Skipped,Passed
+	FailedMatch  flowv1beta1.Match  `json:"failedMatch"`
+	FailedFilter flowv1beta1.Filter `json:"failedFilter"`
+	// +kubebuilder:validation:Enum=Created;Running;Completed
 	Status FlowStatus `json:"status"`
 }
 
@@ -49,8 +42,6 @@ type FlowTestStatus struct {
 //+kubebuilder:subresource:status
 // +kubebuilder:printcolumn:JSONPath=".status.simulationPod.name",name="SimulationPod",type="string"
 // +kubebuilder:printcolumn:JSONPath=".status.simulationFlow.name",name="SimulationFlow",type="string"
-// +kubebuilder:printcolumn:JSONPath=".status.logView",name="LogView",type="string"
-// +kubebuilder:printcolumn:JSONPath=".status.logView",name="LogView",type="string"
 
 // FlowTest is the Schema for the flowtests API
 type FlowTest struct {

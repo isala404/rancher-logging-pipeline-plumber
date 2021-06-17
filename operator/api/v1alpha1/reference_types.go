@@ -1,11 +1,9 @@
 package v1alpha1
 
+// +kubebuilder:validation:Required
 type ReferenceObject struct {
-	// +kubebuilder:validation:Required
-	Kind string `json:"kind"`
-	// +kubebuilder:validation:Required
-	Name string `json:"name"`
-	// +kubebuilder:validation:Required
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
 }
 
