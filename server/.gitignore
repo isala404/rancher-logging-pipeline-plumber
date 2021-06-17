@@ -19,5 +19,4 @@
 /vendor/
 /Godeps/
 
-### GoLand ###
-.idea/*
+build/

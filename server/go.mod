@@ -1,4 +1,4 @@
-module rancher-logging-explorer
+module github.com/MrSupiri/rancher-logging-explorer
 
 go 1.16
 

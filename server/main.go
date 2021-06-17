@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,7 +13,7 @@ import (
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
 )
 
@@ -77,13 +79,22 @@ func (o *Operator) DestroyLogOutput(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("{'data': 'output pod destroyed'}"))
 }
 
+//go:embed build
+var content embed.FS
+
+func clientHandler() http.Handler {
+	fsys := fs.FS(content)
+	contentStatic, _ := fs.Sub(fsys, "build")
+	return http.FileServer(http.FS(contentStatic))
+}
+
 func main() {
 
 	// use the current context in kubeconfig
-	// config, err := clientcmd.BuildConfigFromFlags("", "./kubeconfig.yaml")
+	config, err := clientcmd.BuildConfigFromFlags("", "./kubeconfig.yaml")
 
 	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
+	// config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -101,9 +112,12 @@ func main() {
 
 	r := mux.NewRouter()
 
+	// webapp :=
+
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/log-output/deploy", o.DeployLogOutput).Methods("POST")
 	r.HandleFunc("/log-output/destroy", o.DestroyLogOutput).Methods("POST")
+	r.PathPrefix("/").Handler(clientHandler())
 
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe(":8000", r))
