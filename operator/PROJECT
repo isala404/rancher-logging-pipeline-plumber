@@ -1,0 +1,6 @@
+domain: isala.me
+layout:
+- go.kubebuilder.io/v3
+projectName: operator
+repo: isala.me/rancher-logging-explorer
+version: "3"
