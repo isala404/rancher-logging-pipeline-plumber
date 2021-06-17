@@ -17,29 +17,40 @@ limitations under the License.
 package v1alpha1
 
 import (
+	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1/"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // FlowTestSpec defines the desired state of FlowTest
 type FlowTestSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of FlowTest. Edit flowtest_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// +kubebuilder:validation:Required
+	ReferencePod ReferenceObject `json:"referencePod"`
+	// +kubebuilder:validation:Required
+	ReferenceFlow ReferenceObject `json:"referenceFlow"`
+	// +kubebuilder:validation:Required
+	Messages []string `json:"messages"`
+	// +kubebuilder:validation:Required
+	Match []flowv1beta1.Match `json:"match,omitempty"`
+	// +kubebuilder:validation:Required
+	Filters []flowv1beta1.Filter `json:"filters,omitempty"`
 }
 
 // FlowTestStatus defines the observed state of FlowTest
 type FlowTestStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	SimulationPod  ReferenceObject `json:"simulationPod"`
+	SimulationFlow ReferenceObject `json:"simulationFlow"`
+	OutputIndex    string          `json:"outputIndex"`
+	LogView        string          `json:"logView"`
+	// +kubebuilder:validation:Enum=Created,Running,Failed,Skipped,Passed
+	Status FlowStatus `json:"status"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+// +kubebuilder:printcolumn:JSONPath=".status.simulationPod.name",name="SimulationPod",type="string"
+// +kubebuilder:printcolumn:JSONPath=".status.simulationFlow.name",name="SimulationFlow",type="string"
+// +kubebuilder:printcolumn:JSONPath=".status.logView",name="LogView",type="string"
+// +kubebuilder:printcolumn:JSONPath=".status.logView",name="LogView",type="string"
 
 // FlowTest is the Schema for the flowtests API
 type FlowTest struct {
