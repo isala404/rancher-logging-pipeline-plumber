@@ -1,0 +1,24 @@
+# permissions for end users to edit flowtests.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: flowtest-editor-role
+rules:
+- apiGroups:
+  - loggingplumber.isala.me
+  resources:
+  - flowtests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - loggingplumber.isala.me
+  resources:
+  - flowtests/status
+  verbs:
+  - get
