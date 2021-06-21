@@ -1,4 +1,4 @@
-module isala.me/rancher-logging-explorer
+module github.com/mrsupiri/rancher-logging-explorer
 
 go 1.16
 
