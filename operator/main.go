@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/mrsupiri/rancher-logging-explorer/internal/server"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -31,8 +32,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	loggingplumberv1alpha1 "isala.me/rancher-logging-explorer/api/v1alpha1"
-	"isala.me/rancher-logging-explorer/controllers"
+	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
+	"github.com/mrsupiri/rancher-logging-explorer/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -90,9 +91,9 @@ func main() {
 	}
 	//+kubebuilder:scaffold:builder
 
-	setupLog.Info("starting event server", "addr", eventsAddr)
+	setupLog.Info("starting web server", "addr", webAddr)
 	ctx := ctrl.SetupSignalHandler()
-	webServer := server.NewWebServer(webAddr, log, mgr.GetClient())
+	webServer := server.NewWebServer(webAddr, mgr.GetClient())
 	go webServer.ListenAndServe(ctx.Done())
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
@@ -105,7 +106,7 @@ func main() {
 	}
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

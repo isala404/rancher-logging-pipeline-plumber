@@ -2,47 +2,43 @@ package server
 
 import (
 	"embed"
-	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/go-logr/logr"
 	"github.com/gorilla/mux"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type WebServer struct {
-	CoreClient *kubernetes.Clientset
-	Port       int
+	kubeClient client.Client
+	port       string
 }
 
 // NewWebServer returns an HTTP server that handles webhooks
-func NewWebServer(port string, logger logr.Logger, kubeClient client.Client) (*WebServer, error) {
+func NewWebServer(port string, kubeClient client.Client) *WebServer {
 
-	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", "kubeconfig.yaml")
-
-	// creates the in-cluster config
-	// config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	// create the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-
-	if err != nil {
-		return &WebServer{}, err
-	}
+	//// use the current context in kubeconfig
+	//config, err := clientcmd.BuildConfigFromFlags("", "kubeconfig.yaml")
+	//
+	//// creates the in-cluster config
+	//// config, err := rest.InClusterConfig()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//// create the clientset
+	//clientset, err := kubernetes.NewForConfig(config)
+	//
+	//if err != nil {
+	//	return &WebServer{}, err
+	//}
 
 	return &WebServer{
-		CoreClient: clientset,
-		Port:       8000,
-	}, nil
+		kubeClient: kubeClient,
+		port:       port,
+	}
 }
 
 //go:embed build
@@ -62,7 +58,7 @@ func (ws *WebServer) ListenAndServe(stopCh <-chan struct{}) {
 	r.PathPrefix("/").Handler(clientHandler())
 
 	go func() {
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", ws.Port), r); err != http.ErrServerClosed {
+		if err := http.ListenAndServe(ws.port, r); err != http.ErrServerClosed {
 			log.Printf("Receiver server crashed: %s", err)
 			os.Exit(1)
 		}
