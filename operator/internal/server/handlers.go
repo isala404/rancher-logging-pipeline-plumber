@@ -1,63 +1,97 @@
 package server
 
 import (
+	"context"
+	"encoding/json"
+	"github.com/mrsupiri/rancher-logging-explorer/internal/server/manifests"
 	"net/http"
 )
 
-func (ws *WebServer) DeployLogOutput(w http.ResponseWriter, r *http.Request) {
-	//d := v1.Deployment{}
-	//yamlFile, err := ioutil.ReadFile("operator/internal/manifests/log-output.yaml")
-	//if err != nil {
-	//	w.Header().Set("Content-Type", "application/json")
-	//	w.WriteHeader(500)
-	//	w.Write([]byte(fmt.Sprintf("{'error': '%v'}", err)))
-	//	return
-	//}
-	//err = yaml.Unmarshal(yamlFile, &d)
-	//if err != nil {
-	//	w.Header().Set("Content-Type", "application/json")
-	//	w.WriteHeader(500)
-	//	w.Write([]byte(fmt.Sprintf("{'error': '%v'}", err)))
-	//	return
-	//}
-	//
-	//_, err = ws.CoreClient.AppsV1().Deployments("default").Create(context.TODO(), &d, metav1.CreateOptions{})
-	//if err != nil {
-	//	w.Header().Set("Content-Type", "application/json")
-	//	w.WriteHeader(500)
-	//	w.Write([]byte(fmt.Sprintf("{'error': %v}", err)))
-	//	return
-	//}
-
+func (ws *WebServer) DeployLogOutput(w http.ResponseWriter, _ *http.Request) {
+	var err error
 	w.Header().Set("Content-Type", "application/json")
+
+	d, s, err := manifests.GetLogOutput()
+	if err != nil {
+		w.WriteHeader(500)
+		res, _ := json.Marshal(
+			HTTPResponse{
+				Error: &HTTPError{Error: err.Error(), Message: "Failed fetch log-output manifests"},
+			})
+		_, _ = w.Write(res)
+		return
+	}
+
+	err = ws.kubeClient.Create(context.TODO(), &d)
+	if err != nil {
+		w.WriteHeader(500)
+		res, _ := json.Marshal(
+			HTTPResponse{
+				Error: &HTTPError{Error: err.Error(), Message: "Failed to create log-output deployment"},
+			})
+		_, _ = w.Write(res)
+		return
+	}
+
+	err = ws.kubeClient.Create(context.TODO(), &s)
+	if err != nil {
+		w.WriteHeader(500)
+		res, _ := json.Marshal(
+			HTTPResponse{
+				Error: &HTTPError{Error: err.Error(), Message: "Failed to create log-output service"},
+			})
+		_, _ = w.Write(res)
+		return
+	}
+
 	w.WriteHeader(200)
-	w.Write([]byte("{'data': 'output pod deployed'}"))
+	res, _ := json.Marshal(
+		HTTPResponse{
+			Data: &HTTPData{Message: "log-output deployed successfully"},
+		})
+	_, _ = w.Write(res)
 }
 func (ws *WebServer) DestroyLogOutput(w http.ResponseWriter, r *http.Request) {
-	//d := v1.Deployment{}
-	//yamlFile, err := ioutil.ReadFile("log-output.yaml")
-	//if err != nil {
-	//	w.Header().Set("Content-Type", "application/json")
-	//	w.WriteHeader(500)
-	//	w.Write([]byte(fmt.Sprintf("{'error': '%v'}", err)))
-	//	return
-	//}
-	//err = yaml.Unmarshal(yamlFile, &d)
-	//if err != nil {
-	//	w.Header().Set("Content-Type", "application/json")
-	//	w.WriteHeader(500)
-	//	w.Write([]byte(fmt.Sprintf("{'error': '%v'}", err)))
-	//	return
-	//}
-	//
-	//err = ws.CoreClient.AppsV1().Deployments("default").Delete(context.TODO(), "log-output", metav1.DeleteOptions{})
-	//if err != nil {
-	//	w.Header().Set("Content-Type", "application/json")
-	//	w.WriteHeader(500)
-	//	w.Write([]byte(fmt.Sprintf("{'error': %v}", err)))
-	//	return
-	//}
+	var err error
 	w.Header().Set("Content-Type", "application/json")
+
+	d, s, err := manifests.GetLogOutput()
+	if err != nil {
+		w.WriteHeader(500)
+		res, _ := json.Marshal(
+			HTTPResponse{
+				Error: &HTTPError{Error: err.Error(), Message: "Failed fetch log-output manifests"},
+			})
+		_, _ = w.Write(res)
+		return
+	}
+
+	err = ws.kubeClient.Delete(context.TODO(), &d)
+	if err != nil {
+		w.WriteHeader(500)
+		res, _ := json.Marshal(
+			HTTPResponse{
+				Error: &HTTPError{Error: err.Error(), Message: "Failed to destroy log-output deployment"},
+			})
+		_, _ = w.Write(res)
+		return
+	}
+
+	err = ws.kubeClient.Delete(context.TODO(), &s)
+	if err != nil {
+		w.WriteHeader(500)
+		res, _ := json.Marshal(
+			HTTPResponse{
+				Error: &HTTPError{Error: err.Error(), Message: "Failed to destroy log-output service"},
+			})
+		_, _ = w.Write(res)
+		return
+	}
+
 	w.WriteHeader(200)
-	w.Write([]byte("{'data': 'output pod destroyed'}"))
+	res, _ := json.Marshal(
+		HTTPResponse{
+			Data: &HTTPData{Message: "log-output destroyed successfully"},
+		})
+	_, _ = w.Write(res)
 }
