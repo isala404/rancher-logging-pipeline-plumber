@@ -90,7 +90,6 @@ func main() {
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
-
 	setupLog.Info("starting web server", "addr", webAddr)
 	ctx := ctrl.SetupSignalHandler()
 	webServer := server.NewWebServer(webAddr, mgr.GetClient())

@@ -2,42 +2,29 @@ package server
 
 import (
 	"embed"
+	"github.com/go-logr/logr"
+	"github.com/gorilla/mux"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/gorilla/mux"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type WebServer struct {
 	kubeClient client.Client
 	port       string
+	logger     logr.Logger
 }
 
 // NewWebServer returns an HTTP server that handles webhooks
 func NewWebServer(port string, kubeClient client.Client) *WebServer {
-
-	//// use the current context in kubeconfig
-	//config, err := clientcmd.BuildConfigFromFlags("", "kubeconfig.yaml")
-	//
-	//// creates the in-cluster config
-	//// config, err := rest.InClusterConfig()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//// create the clientset
-	//clientset, err := kubernetes.NewForConfig(config)
-	//
-	//if err != nil {
-	//	return &WebServer{}, err
-	//}
-
+	logger := ctrl.Log.WithName("web-server")
 	return &WebServer{
 		kubeClient: kubeClient,
 		port:       port,
+		logger:     logger,
 	}
 }
 
