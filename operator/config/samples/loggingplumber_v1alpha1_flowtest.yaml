@@ -16,7 +16,3 @@ spec:
     - "[2021-06-10T11:50:07Z] @WARNING Ne hi flagitantur alienam neglecta. 1374 ::0.474177"
     - "[2021-06-10T11:50:08Z] @INFO Amo ideoque die se at, caro aer, ad cor. 1375 ::0.263548"
     - "[2021-06-10T11:50:09Z] @INFO Se contexo servis inpiis erogo, diligit ita significaret eosdem. 1376 ::0.405282"
-  match:
-    - select:
-        labels:
-          rancher.logging.example/app: log-generator

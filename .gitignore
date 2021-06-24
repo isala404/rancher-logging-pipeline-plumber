@@ -1,3 +1,5 @@
 ### IDEs ###
 **/.idea/*
 .vscode/*
+kubeconfig.yaml
+operator/internal/server/build

@@ -2,7 +2,7 @@ domain: isala.me
 layout:
 - go.kubebuilder.io/v3
 projectName: operator
-repo: isala.me/rancher-logging-explorer
+repo: github.com/mrsupiri/rancher-logging-explorer
 resources:
 - api:
     crdVersion: v1
@@ -11,6 +11,6 @@ resources:
   domain: isala.me
   group: loggingplumber
   kind: FlowTest
-  path: isala.me/rancher-logging-explorer/api/v1alpha1
+  path: github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1
   version: v1alpha1
 version: "3"

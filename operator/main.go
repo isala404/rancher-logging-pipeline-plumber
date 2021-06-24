@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/mrsupiri/rancher-logging-explorer/internal/server"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -31,8 +32,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	loggingplumberv1alpha1 "isala.me/rancher-logging-explorer/api/v1alpha1"
-	"isala.me/rancher-logging-explorer/controllers"
+	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
+	"github.com/mrsupiri/rancher-logging-explorer/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -52,7 +53,10 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var webAddr string
+
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&webAddr, "web-addr", ":9090", "The address the frontend API endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
@@ -86,6 +90,10 @@ func main() {
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
+	setupLog.Info("starting web server", "addr", webAddr)
+	ctx := ctrl.SetupSignalHandler()
+	webServer := server.NewWebServer(webAddr, mgr.GetClient())
+	go webServer.ListenAndServe(ctx.Done())
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
@@ -97,7 +105,7 @@ func main() {
 	}
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
