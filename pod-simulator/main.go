@@ -1,41 +1,59 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
+	"bufio"
 	"fmt"
-	"github.com/gorilla/mux"
-	"net/http"
+	"os"
+	"strconv"
+	"time"
 )
 
-func echo(w http.ResponseWriter, req *http.Request) {
-	var logs []interface{}
-	err := json.NewDecoder(req.Body).Decode(&logs)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	for _, log := range logs{
-		jsonString, err := json.Marshal(log)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		fmt.Println(string(jsonString))
-	}
-}
-
 func main() {
-	var webAddr string
-	flag.StringVar(&webAddr, "web-addr", ":9090", "The address http server binds to.")
-	flag.Parse()
+	echoDelay := 3 * time.Second
+	if delay, err := strconv.Atoi(os.Getenv("ECHO_DELAY")); err == nil {
+		echoDelay = time.Duration(delay) * time.Second
+	}
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", echo).Methods("POST")
+	// Source - https://www.geeksforgeeks.org/how-to-read-a-file-line-by-line-to-string-in-golang/
 
-	err := http.ListenAndServe(webAddr, r)
+	// os.Open() opens specific file in
+	// read-only mode and this return
+	// a pointer of type os.
+	file, err := os.Open("./simulation.log")
+
 	if err != nil {
-		panic(err)
+		panic("failed to open simulation.log")
+
+	}
+
+	// The bufio.NewScanner() function is called in which the
+	// object os.File passed as its parameter and this returns a
+	// object bufio.Scanner which is further used on the
+	// bufio.Scanner.Split() method.
+	scanner := bufio.NewScanner(file)
+
+	// The bufio.ScanLines is used as an
+	// input to the method bufio.Scanner.Split()
+	// and then the scanning forwards to each
+	// new line using the bufio.Scanner.Scan()
+	// method.
+	scanner.Split(bufio.ScanLines)
+	var text []string
+
+	for scanner.Scan() {
+		text = append(text, scanner.Text())
+	}
+
+	// The method os.File.Close() is called
+	// on the os.File object to close the file
+	file.Close()
+
+	// ------------------------------------------------------------------------------------------
+
+	for ; ; {
+		for _, line := range text {
+			fmt.Println(line)
+			time.Sleep(echoDelay)
+		}
 	}
 }

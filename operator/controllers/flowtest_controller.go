@@ -23,6 +23,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 )
 
 // FlowTestReconciler reconciles a FlowTest object
@@ -45,9 +46,35 @@ type FlowTestReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
 func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	return ctrl.Result{}, nil
+	var flowTest loggingplumberv1alpha1.FlowTest
+	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	logger.Info("Reconciling")
+
+	//var referencePod v1.Pod
+	//if err := r.Get(ctx, types.NamespacedName{
+	//	Namespace: flowTest.Spec.ReferencePod.Namespace,
+	//	Name:      flowTest.Spec.ReferencePod.Name,
+	//}, &referencePod); err != nil {
+	//	//if apierrors.IsNotFound(err) {
+	//	//	logger.V()
+	//	//}
+	//	//client.IgnoreNotFound()
+	//	return ctrl.Result{}, err
+	//}
+
+	//var referenceFlow flowv1beta1.Flow
+	//if err := r.Get(ctx, types.NamespacedName{
+	//	Namespace: flowTest.Spec.ReferenceFlow.Namespace,
+	//	Name:      flowTest.Spec.ReferenceFlow.Name,
+	//}, &referenceFlow); err != nil {
+	//	return ctrl.Result{}, err
+	//}
+
+	return ctrl.Result{RequeueAfter: time.Second * 10}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
