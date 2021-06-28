@@ -2,6 +2,11 @@ apiVersion: loggingplumber.isala.me/v1alpha1
 kind: FlowTest
 metadata:
   name: flowtest-sample
+  labels:
+    app.kubernetes.io/name: pod-simulation
+    app.kubernetes.io/managed-by: rancher-logging-explorer
+    app.kubernetes.io/created-by: logging-plumber
+    loggingplumber.isala.me/flowtest: flowtest-sample
 spec:
   referencePod:
     kind: Pod
@@ -16,3 +21,25 @@ spec:
     - "[2021-06-10T11:50:07Z] @WARNING Ne hi flagitantur alienam neglecta. 1374 ::0.474177"
     - "[2021-06-10T11:50:08Z] @INFO Amo ideoque die se at, caro aer, ad cor. 1375 ::0.263548"
     - "[2021-06-10T11:50:09Z] @INFO Se contexo servis inpiis erogo, diligit ita significaret eosdem. 1376 ::0.405282"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-simulator
+  labels:
+    app.kubernetes.io/name: pod-simulation
+    app.kubernetes.io/managed-by: rancher-logging-explorer
+    app.kubernetes.io/created-by: logging-plumber
+    loggingplumber.isala.me/flowtest: flowtest-sample
+spec:
+  containers:
+    - name: pod-simulator
+      image: k3d-rancher-logging-explorer-registry:5000/rancher-logging-explorer/pod-simulator:latest
+      volumeMounts:
+        - name: config-volume
+          mountPath: /var/logs
+  volumes:
+    - name: config-volume
+      configMap:
+        name: test-pod-configmap
+  restartPolicy: Never

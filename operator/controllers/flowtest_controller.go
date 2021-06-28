@@ -17,13 +17,16 @@ limitations under the License.
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"time"
 )
 
 // FlowTestReconciler reconciles a FlowTest object
@@ -54,6 +57,39 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	logger.Info("Reconciling")
 
+	logOutput := new(bytes.Buffer)
+	for _, line := range flowTest.Spec.SentMessages {
+		_, _ = logOutput.WriteString(fmt.Sprintf("%s\n", line))
+	}
+
+	Immutable := true
+	configMap := v1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "V1",
+			Kind:       "ConfigMap",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-configmap", flowTest.Spec.ReferencePod.Name),
+			Namespace: flowTest.Spec.ReferencePod.Namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":                "pod-simulation",
+				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
+				"app.kubernetes.io/created-by":          "logging-plumber",
+				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
+				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
+			},
+		},
+		Immutable:  &Immutable,
+		BinaryData: map[string][]byte{"simulation.log": logOutput.Bytes()},
+	}
+
+	if err := r.Create(ctx, &configMap); err != nil {
+		logger.Error(err, "failed to create ConfigMap with simulation.log")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	logger.Info("Deployed ConfigMap with simulation.log", "uuid", configMap.ObjectMeta.UID)
+
 	//var referencePod v1.Pod
 	//if err := r.Get(ctx, types.NamespacedName{
 	//	Namespace: flowTest.Spec.ReferencePod.Namespace,
@@ -74,7 +110,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	//	return ctrl.Result{}, err
 	//}
 
-	return ctrl.Result{RequeueAfter: time.Second * 10}, nil
+	return ctrl.Result{Requeue: false}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
