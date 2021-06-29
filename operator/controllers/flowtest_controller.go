@@ -142,6 +142,33 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{Requeue: false}, client.IgnoreNotFound(err)
 	}
 
+	outputPod := v1.Pod{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "V1",
+			Kind:       "Pod",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "logging-plumber-log-aggregator",
+			Namespace: flowTest.Spec.ReferencePod.Namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":       "pod-simulation",
+				"app.kubernetes.io/managed-by": "rancher-logging-explorer",
+				"app.kubernetes.io/created-by": "logging-plumber",
+			},
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{{
+				Name:  "log-output",
+				Image: "paynejacob/log-output:latest",
+			}},
+		},
+	}
+
+	if err := r.Create(ctx, &outputPod); err != nil {
+		logger.Error(err, "failed to create the log output pod")
+		return ctrl.Result{Requeue: false}, client.IgnoreNotFound(err)
+	}
+
 	//var referenceFlow flowv1beta1.Flow
 	//if err := r.Get(ctx, types.NamespacedName{
 	//	Namespace: flowTest.Spec.ReferenceFlow.Namespace,
