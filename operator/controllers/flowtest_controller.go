@@ -22,8 +22,10 @@ import (
 	"fmt"
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -53,7 +55,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	var flowTest loggingplumberv1alpha1.FlowTest
 	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return ctrl.Result{Requeue: false}, client.IgnoreNotFound(err)
 	}
 	logger.Info("Reconciling")
 
@@ -84,30 +86,68 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if err := r.Create(ctx, &configMap); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			return ctrl.Result{Requeue: false}, nil
+		}
 		logger.Error(err, "failed to create ConfigMap with simulation.log")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return ctrl.Result{Requeue: false}, client.IgnoreNotFound(err)
 	}
 
 	logger.Info("Deployed ConfigMap with simulation.log", "uuid", configMap.ObjectMeta.UID)
 
-	//var referencePod v1.Pod
-	//if err := r.Get(ctx, types.NamespacedName{
-	//	Namespace: flowTest.Spec.ReferencePod.Namespace,
-	//	Name:      flowTest.Spec.ReferencePod.Name,
-	//}, &referencePod); err != nil {
-	//	//if apierrors.IsNotFound(err) {
-	//	//	logger.V()
-	//	//}
-	//	//client.IgnoreNotFound()
-	//	return ctrl.Result{}, err
-	//}
+	var referencePod v1.Pod
+	if err := r.Get(ctx, types.NamespacedName{
+		Namespace: flowTest.Spec.ReferencePod.Namespace,
+		Name:      flowTest.Spec.ReferencePod.Name,
+	}, &referencePod); err != nil {
+		return ctrl.Result{Requeue: false}, err
+	}
+
+	simulationPod := v1.Pod{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "V1",
+			Kind:       "Pod",
+		},
+	}
+
+	simulationPod.ObjectMeta.Name = fmt.Sprintf("%s-simulation", referencePod.ObjectMeta.Name)
+	simulationPod.ObjectMeta.Namespace = flowTest.Spec.ReferencePod.Namespace
+	simulationPod.ObjectMeta.Labels = referencePod.ObjectMeta.Labels
+	simulationPod.ObjectMeta.Labels["app.kubernetes.io/name"] = "pod-simulation"
+	simulationPod.ObjectMeta.Labels["app.kubernetes.io/managed-by"] = "rancher-logging-explorer"
+	simulationPod.ObjectMeta.Labels["app.kubernetes.io/created-by"] = "logging-plumber"
+	simulationPod.ObjectMeta.Labels["loggingplumber.isala.me/flowtest-uuid"] = string(flowTest.ObjectMeta.UID)
+	simulationPod.ObjectMeta.Labels["loggingplumber.isala.me/flowtest"] = flowTest.ObjectMeta.Name
+
+	// TODO: Handle more than or less than 1 Container
+	simulationPod.Spec.Containers = []v1.Container{{
+		Name:         referencePod.Spec.Containers[0].Name,
+		Image:        "k3d-rancher-logging-explorer-registry:5000/rancher-logging-explorer/pod-simulator:latest",
+		VolumeMounts: []v1.VolumeMount{{Name: "config-volume", MountPath: "/var/logs"}},
+	}}
+
+	simulationPod.Spec.Volumes = []v1.Volume{
+		{
+			Name: "config-volume",
+			VolumeSource: v1.VolumeSource{
+				ConfigMap: &v1.ConfigMapVolumeSource{
+					LocalObjectReference: v1.LocalObjectReference{Name: fmt.Sprintf("%s-configmap", flowTest.Spec.ReferencePod.Name)},
+				},
+			},
+		},
+	}
+
+	if err := r.Create(ctx, &simulationPod); err != nil {
+		logger.Error(err, "failed to create the simulation pod")
+		return ctrl.Result{Requeue: false}, client.IgnoreNotFound(err)
+	}
 
 	//var referenceFlow flowv1beta1.Flow
 	//if err := r.Get(ctx, types.NamespacedName{
 	//	Namespace: flowTest.Spec.ReferenceFlow.Namespace,
 	//	Name:      flowTest.Spec.ReferenceFlow.Name,
 	//}, &referenceFlow); err != nil {
-	//	return ctrl.Result{}, err
+	//	return ctrl.Result{Requeuefalse}, err
 	//}
 
 	return ctrl.Result{Requeue: false}, nil
