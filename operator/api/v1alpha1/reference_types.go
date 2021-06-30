@@ -12,7 +12,5 @@ type FlowStatus string
 const (
 	Created FlowStatus = "Created"
 	Running FlowStatus = "Running"
-	Skipped FlowStatus = "Skipped"
-	Failed  FlowStatus = "Failed"
-	Passed  FlowStatus = "Passed"
+	Skipped FlowStatus = "Completed"
 )

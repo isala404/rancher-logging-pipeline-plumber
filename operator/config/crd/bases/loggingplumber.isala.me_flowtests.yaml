@@ -17,11 +17,14 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.simulationPod.name
-      name: SimulationPod
+    - jsonPath: .spec.referencePod.name
+      name: Reference Pod
       type: string
-    - jsonPath: .status.simulationFlow.name
-      name: SimulationFlow
+    - jsonPath: .spec.referenceFlow.name
+      name: Reference Flow
+      type: string
+    - jsonPath: .status.status
+      name: Status
       type: string
     name: v1alpha1
     schema:
@@ -1172,6 +1175,7 @@ spec:
                     type: object
                 type: object
               status:
+                default: Created
                 enum:
                 - Created
                 - Running
