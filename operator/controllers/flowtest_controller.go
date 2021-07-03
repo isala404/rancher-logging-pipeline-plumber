@@ -29,6 +29,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 )
 
 // FlowTestReconciler reconciles a FlowTest object
@@ -57,6 +58,13 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	var flowTest loggingplumberv1alpha1.FlowTest
 	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil {
+		if apierrors.IsNotFound(err) {
+			if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
+				return ctrl.Result{}, err
+			}
+		} else {
+			logger.Error(err, "failed to get the flowtest")
+		}
 		return ctrl.Result{Requeue: false}, client.IgnoreNotFound(err)
 	}
 
@@ -70,8 +78,30 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Created {
-		if err := r.provisionResource(ctx, flowTest); err != nil {
-			return ctrl.Result{Requeue: false}, client.IgnoreNotFound(err)
+		if err := r.provisionResource(ctx, flowTest); client.IgnoreNotFound(err) != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	if flowTest.Status.Status == loggingplumberv1alpha1.Completed {
+		if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: false}, nil
+	}
+
+	if flowTest.Status.Status == loggingplumberv1alpha1.Running {
+		// TODO: Check index on log-output
+
+		// Timeout
+		twoMinuteAfterCreation := flowTest.CreationTimestamp.Add(2 * time.Minute)
+		if time.Now().After(twoMinuteAfterCreation) {
+			flowTest.Status.Status = loggingplumberv1alpha1.Completed
+			if err := r.Status().Update(ctx, &flowTest); err != nil {
+				logger.Error(err, "failed to update flowtest status")
+				return ctrl.Result{}, client.IgnoreNotFound(err)
+			}
+			return ctrl.Result{}, nil
 		}
 	}
 
@@ -83,7 +113,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	//	return ctrl.Result{Requeuefalse}, err
 	//}
 
-	return ctrl.Result{Requeue: false}, nil
+	return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -225,3 +255,38 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context, flowTest log
 	return nil
 }
 
+func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName string) error {
+	logger := log.FromContext(ctx)
+
+	matchingLabels := &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTestName}
+
+	var podList v1.PodList
+	if err := r.List(ctx, &podList, matchingLabels); client.IgnoreNotFound(err) != nil {
+		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", podList.Kind))
+		return err
+	}
+
+	for _, resource := range podList.Items {
+		if err := r.Delete(ctx, &resource); client.IgnoreNotFound(err) != nil {
+			logger.Error(err, fmt.Sprintf("failed to delete a provisioned %s", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
+			return err
+		}
+		logger.V(1).Info(fmt.Sprintf("%s deleted", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
+	}
+
+	var configMapList v1.ConfigMapList
+	if err := r.List(ctx, &configMapList, matchingLabels); client.IgnoreNotFound(err) != nil {
+		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", configMapList.Kind))
+		return err
+	}
+
+	for _, resource := range configMapList.Items {
+		if err := r.Delete(ctx, &resource); client.IgnoreNotFound(err) != nil {
+			logger.Error(err, fmt.Sprintf("failed to delete a provisioned %s", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
+			return err
+		}
+		logger.V(1).Info(fmt.Sprintf("%s deleted", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
+	}
+
+	return nil
+}

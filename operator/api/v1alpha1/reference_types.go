@@ -10,7 +10,7 @@ type ReferenceObject struct {
 type FlowStatus string
 
 const (
-	Created FlowStatus = "Created"
-	Running FlowStatus = "Running"
-	Skipped FlowStatus = "Completed"
+	Created   FlowStatus = "Created"
+	Running   FlowStatus = "Running"
+	Completed FlowStatus = "Completed"
 )
