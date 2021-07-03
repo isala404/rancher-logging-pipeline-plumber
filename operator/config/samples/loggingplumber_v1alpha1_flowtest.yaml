@@ -27,7 +27,7 @@ spec:
     name: busybox-sleep
     namespace: default
   referenceFlow:
-    kind: ClusterFlow
+    kind: Flow
     name: all-logs
     namespace: default
   sentMessages:

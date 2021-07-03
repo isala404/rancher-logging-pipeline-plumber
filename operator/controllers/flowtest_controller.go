@@ -20,6 +20,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,6 +40,7 @@ type FlowTestReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flow,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/finalizers,verbs=update
@@ -247,6 +250,40 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context, flowTest log
 
 	flowTest.Status.Status = loggingplumberv1alpha1.Running
 
+	testFlow := flowv1beta1.Flow{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "logging.banzaicloud.io/v1beta1",
+			Kind:       "flow",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "all-logs",
+			Namespace: "default",
+		},
+		Spec: flowv1beta1.FlowSpec{
+			Match: []flowv1beta1.Match{
+				{
+					Select: &flowv1beta1.Select{
+						Hosts: []string{"a"},
+					},
+				},
+				{
+					Select: &flowv1beta1.Select{
+						Hosts: []string{"b"},
+					},
+				},
+				{
+					Select: &flowv1beta1.Select{
+						Hosts: []string{"c"},
+					},
+				},
+			},
+		},
+	}
+
+	if err := r.deploySlicedFlows(ctx, testFlow, flowTest); err != nil {
+		return err
+	}
+
 	if err := r.Status().Update(ctx, &flowTest); err != nil {
 		logger.Error(err, "failed to update flowtest status")
 		return err
@@ -289,4 +326,112 @@ func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName 
 	}
 
 	return nil
+}
+
+func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest) error {
+	logger := log.FromContext(ctx)
+	i := 0
+
+	flowTemplate, outTemplate := banzaiTemplates(flow, flowTest)
+
+	for x := 1; x <= len(flow.Spec.Match); x++ {
+		targetFlow := *flowTemplate.DeepCopy()
+		targetOutput := *outTemplate.DeepCopy()
+
+		targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", targetFlow.ObjectMeta.Name, i)
+		targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+
+		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", targetFlow.ObjectMeta.Name, i)
+		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d", targetOutput.Spec.HTTPOutput.Endpoint, i)
+
+		targetFlow.Spec.Match = flow.Spec.Match[:x]
+
+		if err := r.Create(ctx, &targetFlow); err != nil {
+			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, flow.ObjectMeta.Name))
+			return err
+		}
+		if err := r.Create(ctx, &targetOutput); err != nil {
+			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, flow.ObjectMeta.Name))
+			return err
+		}
+		i++
+	}
+
+	for x := 1; x <= len(flow.Spec.Match); x++ {
+		targetFlow := *flowTemplate.DeepCopy()
+		targetOutput := *outTemplate.DeepCopy()
+
+		targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", targetFlow.ObjectMeta.Name, i)
+		targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+
+		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", targetFlow.ObjectMeta.Name, i)
+		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d", targetOutput.Spec.HTTPOutput.Endpoint, i)
+
+		targetFlow.Spec.Filters = flow.Spec.Filters[:x+1]
+		if err := r.Create(ctx, &targetFlow); err != nil {
+			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, flow.ObjectMeta.Name))
+			return err
+		}
+		if err := r.Create(ctx, &targetOutput); err != nil {
+			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, flow.ObjectMeta.Name))
+			return err
+		}
+		i++
+	}
+
+	return nil
+}
+
+func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest) (flowv1beta1.Flow, flowv1beta1.Output) {
+	flowTemplate := flowv1beta1.Flow{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "logging.banzaicloud.io/v1beta1",
+			Kind:       "Flow",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-test", flow.ObjectMeta.Name),
+			Namespace: flow.Namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":                flow.ObjectMeta.Name,
+				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
+				"app.kubernetes.io/created-by":          "logging-plumber",
+				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
+				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
+			},
+		},
+		Spec: flowv1beta1.FlowSpec{
+			LocalOutputRefs: nil,
+		},
+	}
+
+	outTemplate := flowv1beta1.Output{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "logging.banzaicloud.io/v1beta1",
+			Kind:       "Output",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-test", flow.ObjectMeta.Name),
+			Namespace: flow.Namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":                flow.ObjectMeta.Name,
+				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
+				"app.kubernetes.io/created-by":          "logging-plumber",
+				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
+				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
+			},
+		},
+		Spec: flowv1beta1.OutputSpec{
+			HTTPOutput: &output.HTTPOutputConfig{
+				Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator/%s", fmt.Sprintf("%s-slice", flow.ObjectMeta.Name)),
+				Buffer: &output.Buffer{
+					FlushMode:     "10s",
+					FlushInterval: "interval",
+				},
+			},
+		},
+	}
+
+	return flowTemplate, outTemplate
 }
