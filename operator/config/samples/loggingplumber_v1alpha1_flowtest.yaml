@@ -12,6 +12,24 @@
 #        - sleep
 #        - "1000000"
 #---
+#apiVersion: logging.banzaicloud.io/v1beta1
+#kind: Flow
+#metadata:
+#  name: busybox-sleep
+#spec:
+#  localOutputRefs:
+#    - busybox-sleep
+#  match:
+#    - select:
+#        labels:
+#          app.kubernetes.io/name: a
+#    - select:
+#        labels:
+#          app.kubernetes.io/name: b
+#    - select:
+#        labels:
+#          app.kubernetes.io/name: c
+---
 apiVersion: loggingplumber.isala.me/v1alpha1
 kind: FlowTest
 metadata:
@@ -28,7 +46,7 @@ spec:
     namespace: default
   referenceFlow:
     kind: Flow
-    name: all-logs
+    name: busybox-sleep
     namespace: default
   sentMessages:
     - "[2021-06-10T11:50:06Z] @DEBUG Tam ipsae consuetudo infelix adtendi contexo mansuefecisti diutius re. 1373 ::0.403911"
