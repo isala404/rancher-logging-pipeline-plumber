@@ -35,7 +35,7 @@ type FlowTestStatus struct {
 	FailedMatch  flowv1beta1.Match  `json:"failedMatch"`
 	FailedFilter flowv1beta1.Filter `json:"failedFilter"`
 	// +kubebuilder:default:="Created"
-	// +kubebuilder:validation:Enum=Created;Running;Completed
+	// +kubebuilder:validation:Enum=Created;Running;Completed;Error
 	Status FlowStatus `json:"status"`
 }
 

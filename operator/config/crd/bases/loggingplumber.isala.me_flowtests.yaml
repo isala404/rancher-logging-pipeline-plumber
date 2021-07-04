@@ -1180,6 +1180,7 @@ spec:
                 - Created
                 - Running
                 - Completed
+                - Error
                 type: string
             required:
             - failedFilter

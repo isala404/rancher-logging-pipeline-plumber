@@ -41,6 +41,7 @@ type FlowTestReconciler struct {
 }
 
 //+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flow,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=output,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/finalizers,verbs=update
@@ -75,20 +76,20 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		flowTest.Status.Status = loggingplumberv1alpha1.Created
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to update flowtest status")
-			return ctrl.Result{}, client.IgnoreNotFound(err)
+			return ctrl.Result{}, r.setErrorStatus(ctx, flowTest, client.IgnoreNotFound(err))
 		}
 		return ctrl.Result{}, nil
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Created {
 		if err := r.provisionResource(ctx, flowTest); client.IgnoreNotFound(err) != nil {
-			return ctrl.Result{}, err
+			return ctrl.Result{}, r.setErrorStatus(ctx, flowTest, err)
 		}
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Completed {
 		if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
-			return ctrl.Result{}, err
+			return ctrl.Result{}, r.setErrorStatus(ctx, flowTest, err)
 		}
 		return ctrl.Result{Requeue: false}, nil
 	}
@@ -102,7 +103,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			flowTest.Status.Status = loggingplumberv1alpha1.Completed
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to update flowtest status")
-				return ctrl.Result{}, client.IgnoreNotFound(err)
+				return ctrl.Result{}, r.setErrorStatus(ctx, flowTest, client.IgnoreNotFound(err))
 			}
 			return ctrl.Result{}, nil
 		}
@@ -124,6 +125,20 @@ func (r *FlowTestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&loggingplumberv1alpha1.FlowTest{}).
 		Complete(r)
+}
+
+func (r *FlowTestReconciler) setErrorStatus(ctx context.Context, flowTest loggingplumberv1alpha1.FlowTest, err error) error {
+	logger := log.FromContext(ctx)
+	if err != nil {
+		flowTest.Status.Status = loggingplumberv1alpha1.Error
+
+		if err := r.Status().Update(ctx, &flowTest); err != nil {
+			logger.Error(err, "failed to update flowtest status")
+			return err
+		}
+		return err
+	}
+	return nil
 }
 
 func (r *FlowTestReconciler) provisionResource(ctx context.Context, flowTest loggingplumberv1alpha1.FlowTest) error {
@@ -248,8 +263,6 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context, flowTest log
 		logger.V(1).Info("found a already deployed log output pod", "pod-uuid", outputPod.UID)
 	}
 
-	flowTest.Status.Status = loggingplumberv1alpha1.Running
-
 	testFlow := flowv1beta1.Flow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -283,6 +296,8 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context, flowTest log
 	if err := r.deploySlicedFlows(ctx, testFlow, flowTest); err != nil {
 		return err
 	}
+
+	flowTest.Status.Status = loggingplumberv1alpha1.Running
 
 	if err := r.Status().Update(ctx, &flowTest); err != nil {
 		logger.Error(err, "failed to update flowtest status")

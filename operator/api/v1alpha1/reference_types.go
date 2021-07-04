@@ -13,4 +13,5 @@ const (
 	Created   FlowStatus = "Created"
 	Running   FlowStatus = "Running"
 	Completed FlowStatus = "Completed"
+	Error     FlowStatus = "Error"
 )
