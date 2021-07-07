@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -77,7 +79,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Created {
-		if err := r.provisionResource(ctx); client.IgnoreNotFound(err) != nil {
+		if err := r.provisionResource(ctx); err != nil {
 			return ctrl.Result{}, r.setErrorStatus(ctx, err)
 		}
 	}
@@ -101,6 +103,11 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
 			}
 			return ctrl.Result{}, nil
+		} else {
+			logger.V(1).Info("checking log indexes")
+			if err := r.checkForPassingFlowTest(ctx); err != nil {
+				return ctrl.Result{RequeueAfter: 30 * time.Second}, err
+			}
 		}
 	}
 
@@ -112,4 +119,32 @@ func (r *FlowTestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&loggingplumberv1alpha1.FlowTest{}).
 		Complete(r)
+}
+
+func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error {
+	logger := log.FromContext(ctx)
+	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+
+	var flows flowv1beta1.FlowList
+	if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
+		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flows.Kind))
+		return err
+	}
+
+	for _, flow := range flows.Items {
+		passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
+		if err != nil {
+			return err
+		}
+		if passing {
+			active := false
+			flow.Status.Active = &active
+			if err := r.Status().Update(ctx, &flowTest); err != nil {
+				logger.Error(err, "failed to update flow status")
+				return err
+			}
+		}
+	}
+
+	return nil
 }

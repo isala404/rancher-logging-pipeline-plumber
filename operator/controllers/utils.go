@@ -2,12 +2,15 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 )
 
 func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest) (flowv1beta1.Flow, flowv1beta1.Output) {
@@ -75,4 +78,44 @@ func (r *FlowTestReconciler) setErrorStatus(ctx context.Context, err error) erro
 		return err
 	}
 	return nil
+}
+
+type Index struct {
+	Name     string    `json:"name"`
+	FirstLog time.Time `json:"first_log"`
+	LastLog  time.Time `json:"last_log"`
+	LogCount int       `json:"log_count"`
+}
+
+func CheckIndex(ctx context.Context, indexName string) (bool, error) {
+	logger := log.FromContext(ctx)
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "http://localhost:8111/", nil)
+	if err != nil {
+		logger.Error(err, "failed to create request for checking indexes")
+		return false, err
+	}
+	req.Header.Add("Accept", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Error(err, "failed to fetch log indexes")
+		return false, err
+	}
+	var indexes []Index
+	if err := json.NewDecoder(resp.Body).Decode(&indexes); err != nil {
+		logger.Error(err, "failed to fetch log indexes")
+		return false, err
+	}
+	for _, index := range indexes {
+		if index.Name == indexName {
+			if index.LogCount > 0 {
+				return true, nil
+			} else {
+				return false, nil
+			}
+		}
+	}
+
+	return false, nil
 }

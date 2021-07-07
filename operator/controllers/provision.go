@@ -115,15 +115,21 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 					Name:      "logging-plumber-log-aggregator",
 					Namespace: flowTest.ObjectMeta.Namespace,
 					Labels: map[string]string{
-						"app.kubernetes.io/name":       "pod-simulation",
-						"app.kubernetes.io/managed-by": "rancher-logging-explorer",
-						"app.kubernetes.io/created-by": "logging-plumber",
+						"app.kubernetes.io/name":            "logging-plumber-log-aggregator",
+						"app.kubernetes.io/managed-by":      "rancher-logging-explorer",
+						"app.kubernetes.io/created-by":      "logging-plumber",
+						"loggingplumber.isala.me/component": "log-aggregator",
 					},
 				},
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{{
 						Name:  "log-output",
 						Image: "paynejacob/log-output:latest",
+						Ports: []v1.ContainerPort{{
+							Name:          "http",
+							ContainerPort: 80,
+							Protocol:      "TCP",
+						}},
 					}},
 				},
 			}
