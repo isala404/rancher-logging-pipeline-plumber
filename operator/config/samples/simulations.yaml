@@ -8,7 +8,7 @@ spec:
   containers:
     - name: busybox
       image: busybox
-      command: ["sh", "-c", 'x=1; while [ $x -gt -1 ]; do echo "Test" $(( x++ )) && sleep 10; done']
+      command: ["sh", "-c", 'x=1; while [ $x -gt -1 ]; do echo "Test" $(( x++ )) && sleep 1; done']
 ---
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Flow
@@ -38,7 +38,7 @@ metadata:
     loggingplumber.isala.me/test: simulations
 spec:
   http:
-    endpoint: "http://logging-plumber-log-aggregator.svc/busybox-echo"
+    endpoint: "http://logging-plumber-log-aggregator.default.svc/busybox-echo/"
     buffer:
       flush_interval: 10s
       flush_mode: interval

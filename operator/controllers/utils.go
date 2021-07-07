@@ -91,6 +91,9 @@ func CheckIndex(ctx context.Context, indexName string) (bool, error) {
 	logger := log.FromContext(ctx)
 
 	client := &http.Client{}
+
+	// TODO: UPDATE THIS SVC NAME
+	// NOTE: When developing this requires port-forward because controller is running locally
 	req, err := http.NewRequest("GET", "http://localhost:8111/", nil)
 	if err != nil {
 		logger.Error(err, "failed to create request for checking indexes")

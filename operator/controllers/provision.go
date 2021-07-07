@@ -166,7 +166,6 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context) error {
 		Namespace: flowTest.Spec.ReferenceFlow.Namespace,
 		Name:      flowTest.Spec.ReferenceFlow.Name,
 	}, &referenceFlow); err != nil {
-		fmt.Println("couldn't get the referencePod")
 		return err
 	}
 
@@ -187,7 +186,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context) error {
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
 		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d", targetOutput.Spec.HTTPOutput.Endpoint, i)
 
-		targetFlow.Spec.LoggingRef = targetFlow.ObjectMeta.Name
+		targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
 
 		targetFlow.Spec.Match = referenceFlow.Spec.Match[:x]
 
@@ -216,7 +215,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context) error {
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d", targetOutput.Spec.HTTPOutput.Endpoint, i)
 
-		targetFlow.Spec.LoggingRef = targetFlow.ObjectMeta.Name
+		targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
 
 		targetFlow.Spec.Filters = referenceFlow.Spec.Filters[:x]
 
