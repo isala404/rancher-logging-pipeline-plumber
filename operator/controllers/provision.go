@@ -191,7 +191,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", targetFlow.ObjectMeta.Name, i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
-		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d/", targetOutput.Spec.HTTPOutput.Endpoint, i)
+		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s/%s/", targetOutput.Spec.HTTPOutput.Endpoint, targetFlow.ObjectMeta.Name)
 
 		targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
 
@@ -220,7 +220,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", targetFlow.ObjectMeta.Name, i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "filter"
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
-		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d/", targetOutput.Spec.HTTPOutput.Endpoint, i)
+		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s/%s/", targetOutput.Spec.HTTPOutput.Endpoint, targetFlow.ObjectMeta.Name)
 
 		targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
 

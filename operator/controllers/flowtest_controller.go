@@ -36,7 +36,8 @@ type FlowTestReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flow,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows;clusterflows;outputs;clusteroutputs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows/status;clusterflows/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=output,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/status,verbs=get;update;patch
@@ -131,9 +132,6 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 	}
 
 	for _, flow := range flows.Items {
-		if flow.Status.Active != nil && *flow.Status.Active == false {
-			continue
-		}
 		passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
 		if err != nil {
 			return err
@@ -142,8 +140,8 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 			active := false
 			flow.Status.Active = &active
 			logger.V(1).Info(fmt.Sprintf("flow %s is passing", flow.ObjectMeta.Name))
-			if err := r.Status().Update(ctx, &flow); err != nil {
-				logger.Error(err, "failed to update flow status")
+			if err := r.Delete(ctx, &flow); err != nil {
+				logger.Error(err, "failed to delete flow status")
 				return err
 			}
 			for _, match := range flow.Spec.Match {

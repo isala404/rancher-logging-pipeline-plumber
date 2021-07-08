@@ -9,7 +9,10 @@ rules:
 - apiGroups:
   - logging.banzaicloud.io
   resources:
-  - flow
+  - clusterflows
+  - clusteroutputs
+  - flows
+  - outputs
   verbs:
   - create
   - delete
@@ -18,6 +21,15 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - logging.banzaicloud.io
+  resources:
+  - clusterflows/status
+  - flows/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - logging.banzaicloud.io
   resources:

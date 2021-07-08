@@ -56,7 +56,7 @@ func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.Flow
 		},
 		Spec: flowv1beta1.OutputSpec{
 			HTTPOutput: &output.HTTPOutputConfig{
-				Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.default.svc/%s", fmt.Sprintf("%s-slice", flow.ObjectMeta.Name)),
+				Endpoint: "http://logging-plumber-log-aggregator.default.svc",
 				Buffer: &output.Buffer{
 					FlushMode:     "interval",
 					FlushInterval: "10s",
