@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest) (flowv1beta1.Flow, flowv1beta1.Output) {
+func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.Flow, flowv1beta1.Output) {
 	flowTemplate := flowv1beta1.Flow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -32,6 +32,9 @@ func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.Flow
 		},
 		Spec: flowv1beta1.FlowSpec{
 			LocalOutputRefs: nil,
+			Match: []flowv1beta1.Match{{
+				Select: &flowv1beta1.Select{Labels: extraLabels},
+			}},
 		},
 	}
 
@@ -53,10 +56,10 @@ func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.Flow
 		},
 		Spec: flowv1beta1.OutputSpec{
 			HTTPOutput: &output.HTTPOutputConfig{
-				Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator/%s", fmt.Sprintf("%s-slice", flow.ObjectMeta.Name)),
+				Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.default.svc/%s", fmt.Sprintf("%s-slice", flow.ObjectMeta.Name)),
 				Buffer: &output.Buffer{
-					FlushMode:     "10s",
-					FlushInterval: "interval",
+					FlushMode:     "interval",
+					FlushInterval: "10s",
 				},
 			},
 		},

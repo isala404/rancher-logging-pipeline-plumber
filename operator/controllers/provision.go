@@ -89,12 +89,19 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		},
 	}
 
+	extraLabels := map[string]string{}
+
+	extraLabels["app.kubernetes.io/name"] = "pod-simulation"
+	extraLabels["app.kubernetes.io/managed-by"] = "rancher-logging-explorer"
+	extraLabels["app.kubernetes.io/created-by"] = "logging-plumber"
+	extraLabels["loggingplumber.isala.me/flowtest-uuid"] = string(flowTest.ObjectMeta.UID)
+	extraLabels["loggingplumber.isala.me/flowtest"] = flowTest.ObjectMeta.Name
+
 	simulationPod.ObjectMeta.Labels = referencePod.ObjectMeta.Labels
-	simulationPod.ObjectMeta.Labels["app.kubernetes.io/name"] = "pod-simulation"
-	simulationPod.ObjectMeta.Labels["app.kubernetes.io/managed-by"] = "rancher-logging-explorer"
-	simulationPod.ObjectMeta.Labels["app.kubernetes.io/created-by"] = "logging-plumber"
-	simulationPod.ObjectMeta.Labels["loggingplumber.isala.me/flowtest-uuid"] = string(flowTest.ObjectMeta.UID)
-	simulationPod.ObjectMeta.Labels["loggingplumber.isala.me/flowtest"] = flowTest.ObjectMeta.Name
+
+	for k, v := range extraLabels {
+		simulationPod.ObjectMeta.Labels[k] = v
+	}
 
 	if err := r.Create(ctx, &simulationPod); err != nil {
 		logger.Error(err, "failed to create the simulation pod")
@@ -143,7 +150,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		logger.V(1).Info("found a already deployed log output pod", "pod-uuid", outputPod.UID)
 	}
 
-	if err := r.deploySlicedFlows(ctx); err != nil {
+	if err := r.deploySlicedFlows(ctx, extraLabels); err != nil {
 		return err
 	}
 
@@ -157,7 +164,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 	return nil
 }
 
-func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context) error {
+func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels map[string]string) error {
 	logger := log.FromContext(ctx)
 	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
 
@@ -171,9 +178,9 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context) error {
 
 	i := 0
 
-	flowTemplate, outTemplate := banzaiTemplates(referenceFlow, flowTest)
+	flowTemplate, outTemplate := banzaiTemplates(referenceFlow, flowTest, extraLabels)
 
-	for x, _ := range referenceFlow.Spec.Match {
+	for x := 1; x <= len(referenceFlow.Spec.Match); x++ {
 		targetFlow := *flowTemplate.DeepCopy()
 		targetOutput := *outTemplate.DeepCopy()
 
@@ -184,11 +191,11 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context) error {
 		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", targetFlow.ObjectMeta.Name, i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
-		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d", targetOutput.Spec.HTTPOutput.Endpoint, i)
+		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d/", targetOutput.Spec.HTTPOutput.Endpoint, i)
 
 		targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
 
-		targetFlow.Spec.Match = referenceFlow.Spec.Match[:x]
+		targetFlow.Spec.Match = append(targetFlow.Spec.Match, referenceFlow.Spec.Match[:x]...)
 
 		if err := r.Create(ctx, &targetFlow); err != nil {
 			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
@@ -202,7 +209,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context) error {
 		i++
 	}
 
-	for x, _ := range referenceFlow.Spec.Filters {
+	for x := 1; x <= len(referenceFlow.Spec.Filters); x++ {
 		targetFlow := *flowTemplate.DeepCopy()
 		targetOutput := *outTemplate.DeepCopy()
 
@@ -213,7 +220,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context) error {
 		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", targetFlow.ObjectMeta.Name, i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "filter"
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
-		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d", targetOutput.Spec.HTTPOutput.Endpoint, i)
+		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s-%d/", targetOutput.Spec.HTTPOutput.Endpoint, i)
 
 		targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
 

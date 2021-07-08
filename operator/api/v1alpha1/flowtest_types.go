@@ -32,8 +32,10 @@ type FlowTestSpec struct {
 
 // FlowTestStatus defines the observed state of FlowTest
 type FlowTestStatus struct {
-	FailedMatch  flowv1beta1.Match  `json:"failedMatch"`
-	FailedFilter flowv1beta1.Filter `json:"failedFilter"`
+	// +nullable
+	PassedMatches []*flowv1beta1.Match `json:"passedMatches"`
+	// +nullable
+	PassedFilters []*flowv1beta1.Filter `json:"passedFilters"`
 	// +kubebuilder:default:="Created"
 	// +kubebuilder:validation:Enum=Created;Running;Completed;Error
 	Status FlowStatus `json:"status"`

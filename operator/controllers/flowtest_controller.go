@@ -23,6 +23,7 @@ import (
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -92,8 +93,6 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Running {
-		// TODO: Check index on log-output
-
 		// Timeout
 		twoMinuteAfterCreation := flowTest.CreationTimestamp.Add(2 * time.Minute)
 		if time.Now().After(twoMinuteAfterCreation) {
@@ -132,6 +131,9 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 	}
 
 	for _, flow := range flows.Items {
+		if flow.Status.Active != nil && *flow.Status.Active == false {
+			continue
+		}
 		passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
 		if err != nil {
 			return err
@@ -139,6 +141,17 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 		if passing {
 			active := false
 			flow.Status.Active = &active
+			logger.V(1).Info(fmt.Sprintf("flow %s is passing", flow.ObjectMeta.Name))
+			if err := r.Status().Update(ctx, &flow); err != nil {
+				logger.Error(err, "failed to update flow status")
+				return err
+			}
+			for _, match := range flow.Spec.Match {
+				flowTest.Status.PassedMatches = appendMatchIfMissing(flowTest.Status.PassedMatches, &match)
+			}
+			for _, filter := range flow.Spec.Filters {
+				flowTest.Status.PassedFilters = appendFilterIfMissing(flowTest.Status.PassedFilters, &filter)
+			}
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to update flow status")
 				return err
@@ -147,4 +160,22 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 	}
 
 	return nil
+}
+
+func appendMatchIfMissing(matches []*flowv1beta1.Match, match *flowv1beta1.Match) []*flowv1beta1.Match {
+	for _, ele := range matches {
+		if reflect.DeepEqual(&ele, &match) {
+			return matches
+		}
+	}
+	return append(matches, match)
+}
+
+func appendFilterIfMissing(filters []*flowv1beta1.Filter, filter *flowv1beta1.Filter) []*flowv1beta1.Filter {
+	for _, ele := range filters {
+		if reflect.DeepEqual(&ele, &filter) {
+			return filters
+		}
+	}
+	return append(filters, filter)
 }

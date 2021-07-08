@@ -84,658 +84,520 @@ spec:
           status:
             description: FlowTestStatus defines the observed state of FlowTest
             properties:
-              failedFilter:
-                description: Filter definition for FlowSpec
-                properties:
-                  concat:
-                    properties:
-                      continuous_line_regexp:
-                        description: The regexp to match continuous lines. This is
-                          exclusive with n_lines.
-                        type: string
-                      flush_interval:
-                        description: The number of seconds after which the last received
-                          event log will be flushed. If specified 0, wait for next
-                          line forever.
-                        type: integer
-                      keep_partial_key:
-                        description: If true, keep partial_key in concatenated records
-                          (default:False)
-                        type: boolean
-                      keep_partial_metadata:
-                        description: If true, keep partial metadata
-                        type: string
-                      key:
-                        description: Specify field name in the record to parse. If
-                          you leave empty the Container Runtime default will be used.
-                        type: string
-                      multiline_end_regexp:
-                        description: The regexp to match ending of multiline. This
-                          is exclusive with n_lines.
-                        type: string
-                      multiline_start_regexp:
-                        description: The regexp to match beginning of multiline. This
-                          is exclusive with n_lines.
-                        type: string
-                      n_lines:
-                        description: The number of lines. This is exclusive with multiline_start_regex.
-                        type: integer
-                      partial_key:
-                        description: The field name that is the reference to concatenate
-                          records
-                        type: string
-                      partial_value:
-                        description: The value stored in the field specified by partial_key
-                          that represent partial log
-                        type: string
-                      separator:
-                        description: 'The separator of lines. (default: "\n")'
-                        type: string
-                      stream_identity_key:
-                        description: The key to determine which stream an event belongs
-                          to.
-                        type: string
-                      timeout_label:
-                        description: The label name to handle events caused by timeout.
-                        type: string
-                      use_first_timestamp:
-                        description: 'Use timestamp of first record when buffer is
-                          flushed. (default: False)'
-                        type: boolean
-                      use_partial_metadata:
-                        description: Use partial metadata to concatenate multiple
-                          records
-                        type: string
-                    type: object
-                  dedot:
-                    properties:
-                      de_dot_nested:
-                        description: 'Will cause the plugin to recurse through nested
-                          structures (hashes and arrays), and remove dots in those
-                          key-names too.(default: false)'
-                        type: boolean
-                      de_dot_separator:
-                        description: Separator (default:_)
-                        type: string
-                    type: object
-                  detectExceptions:
-                    properties:
-                      languages:
-                        description: 'Programming languages for which to detect exceptions.
-                          (default: [])'
-                        items:
+              passedFilters:
+                items:
+                  description: Filter definition for FlowSpec
+                  properties:
+                    concat:
+                      properties:
+                        continuous_line_regexp:
+                          description: The regexp to match continuous lines. This
+                            is exclusive with n_lines.
                           type: string
-                        type: array
-                      max_bytes:
-                        description: 'Maximum number of bytes to flush (0 means no
-                          limit) (default: 0)'
-                        type: integer
-                      max_lines:
-                        description: 'Maximum number of lines to flush (0 means no
-                          limit) (default: 1000)'
-                        type: integer
-                      message:
-                        description: 'The field which contains the raw message text
-                          in the input JSON data. (default: "")'
-                        type: string
-                      multiline_flush_interval:
-                        description: 'The interval of flushing the buffer for multiline
-                          format. (default: nil)'
-                        type: string
-                      remove_tag_prefix:
-                        description: 'The prefix to be removed from the input tag
-                          when outputting a record. (default: "")'
-                        type: string
-                      stream:
-                        description: 'Separate log streams by this field in the input
-                          JSON data. (default: "")'
-                        type: string
-                    type: object
-                  enhanceK8s:
-                    properties:
-                      api_groups:
-                        description: 'Kubernetes resources api groups (default: ["apps/v1",
-                          "extensions/v1beta1"])'
-                        items:
+                        flush_interval:
+                          description: The number of seconds after which the last
+                            received event log will be flushed. If specified 0, wait
+                            for next line forever.
+                          type: integer
+                        keep_partial_key:
+                          description: If true, keep partial_key in concatenated records
+                            (default:False)
+                          type: boolean
+                        keep_partial_metadata:
+                          description: If true, keep partial metadata
                           type: string
-                        type: array
-                      bearer_token_file:
-                        description: 'Bearer token path (default: nil)'
-                        type: string
-                      ca_file:
-                        description: 'Kubernetes API CA file (default: nil)'
-                        properties:
-                          mountFrom:
-                            description: Refers to a secret value to be used through
-                              a volume mount
-                            properties:
-                              secretKeyRef:
-                                description: SecretKeySelector selects a key of a
-                                  Secret.
-                                properties:
-                                  key:
-                                    description: The key of the secret to select from.  Must
-                                      be a valid secret key.
-                                    type: string
-                                  name:
-                                    description: 'Name of the referent. More info:
-                                      https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                      TODO: Add other useful fields. apiVersion, kind,
-                                      uid?'
-                                    type: string
-                                  optional:
-                                    description: Specify whether the Secret or its
-                                      key must be defined
-                                    type: boolean
-                                required:
-                                - key
-                                type: object
-                            type: object
-                          value:
-                            description: Refers to a non-secret value
+                        key:
+                          description: Specify field name in the record to parse.
+                            If you leave empty the Container Runtime default will
+                            be used.
+                          type: string
+                        multiline_end_regexp:
+                          description: The regexp to match ending of multiline. This
+                            is exclusive with n_lines.
+                          type: string
+                        multiline_start_regexp:
+                          description: The regexp to match beginning of multiline.
+                            This is exclusive with n_lines.
+                          type: string
+                        n_lines:
+                          description: The number of lines. This is exclusive with
+                            multiline_start_regex.
+                          type: integer
+                        partial_key:
+                          description: The field name that is the reference to concatenate
+                            records
+                          type: string
+                        partial_value:
+                          description: The value stored in the field specified by
+                            partial_key that represent partial log
+                          type: string
+                        separator:
+                          description: 'The separator of lines. (default: "\n")'
+                          type: string
+                        stream_identity_key:
+                          description: The key to determine which stream an event
+                            belongs to.
+                          type: string
+                        timeout_label:
+                          description: The label name to handle events caused by timeout.
+                          type: string
+                        use_first_timestamp:
+                          description: 'Use timestamp of first record when buffer
+                            is flushed. (default: False)'
+                          type: boolean
+                        use_partial_metadata:
+                          description: Use partial metadata to concatenate multiple
+                            records
+                          type: string
+                      type: object
+                    dedot:
+                      properties:
+                        de_dot_nested:
+                          description: 'Will cause the plugin to recurse through nested
+                            structures (hashes and arrays), and remove dots in those
+                            key-names too.(default: false)'
+                          type: boolean
+                        de_dot_separator:
+                          description: Separator (default:_)
+                          type: string
+                      type: object
+                    detectExceptions:
+                      properties:
+                        languages:
+                          description: 'Programming languages for which to detect
+                            exceptions. (default: [])'
+                          items:
                             type: string
-                          valueFrom:
-                            description: Refers to a secret value to be used directly
-                            properties:
-                              secretKeyRef:
-                                description: SecretKeySelector selects a key of a
-                                  Secret.
-                                properties:
-                                  key:
-                                    description: The key of the secret to select from.  Must
-                                      be a valid secret key.
-                                    type: string
-                                  name:
-                                    description: 'Name of the referent. More info:
-                                      https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                      TODO: Add other useful fields. apiVersion, kind,
-                                      uid?'
-                                    type: string
-                                  optional:
-                                    description: Specify whether the Secret or its
-                                      key must be defined
-                                    type: boolean
-                                required:
-                                - key
-                                type: object
-                            type: object
-                        type: object
-                      cache_refresh:
-                        description: 'Cache refresh (default: 60*60)'
-                        type: integer
-                      cache_refresh_variation:
-                        description: 'Cache refresh variation (default: 60*15)'
-                        type: integer
-                      cache_size:
-                        description: 'Cache size  (default: 1000)'
-                        type: integer
-                      cache_ttl:
-                        description: 'Cache TTL (default: 60*60*2)'
-                        type: integer
-                      client_cert:
-                        description: 'Kubernetes API Client certificate (default:
-                          nil)'
-                        properties:
-                          mountFrom:
-                            description: Refers to a secret value to be used through
-                              a volume mount
-                            properties:
-                              secretKeyRef:
-                                description: SecretKeySelector selects a key of a
-                                  Secret.
-                                properties:
-                                  key:
-                                    description: The key of the secret to select from.  Must
-                                      be a valid secret key.
-                                    type: string
-                                  name:
-                                    description: 'Name of the referent. More info:
-                                      https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                      TODO: Add other useful fields. apiVersion, kind,
-                                      uid?'
-                                    type: string
-                                  optional:
-                                    description: Specify whether the Secret or its
-                                      key must be defined
-                                    type: boolean
-                                required:
-                                - key
-                                type: object
-                            type: object
-                          value:
-                            description: Refers to a non-secret value
-                            type: string
-                          valueFrom:
-                            description: Refers to a secret value to be used directly
-                            properties:
-                              secretKeyRef:
-                                description: SecretKeySelector selects a key of a
-                                  Secret.
-                                properties:
-                                  key:
-                                    description: The key of the secret to select from.  Must
-                                      be a valid secret key.
-                                    type: string
-                                  name:
-                                    description: 'Name of the referent. More info:
-                                      https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                      TODO: Add other useful fields. apiVersion, kind,
-                                      uid?'
-                                    type: string
-                                  optional:
-                                    description: Specify whether the Secret or its
-                                      key must be defined
-                                    type: boolean
-                                required:
-                                - key
-                                type: object
-                            type: object
-                        type: object
-                      client_key:
-                        description: '// Kubernetes API Client certificate key (default:
-                          nil)'
-                        properties:
-                          mountFrom:
-                            description: Refers to a secret value to be used through
-                              a volume mount
-                            properties:
-                              secretKeyRef:
-                                description: SecretKeySelector selects a key of a
-                                  Secret.
-                                properties:
-                                  key:
-                                    description: The key of the secret to select from.  Must
-                                      be a valid secret key.
-                                    type: string
-                                  name:
-                                    description: 'Name of the referent. More info:
-                                      https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                      TODO: Add other useful fields. apiVersion, kind,
-                                      uid?'
-                                    type: string
-                                  optional:
-                                    description: Specify whether the Secret or its
-                                      key must be defined
-                                    type: boolean
-                                required:
-                                - key
-                                type: object
-                            type: object
-                          value:
-                            description: Refers to a non-secret value
-                            type: string
-                          valueFrom:
-                            description: Refers to a secret value to be used directly
-                            properties:
-                              secretKeyRef:
-                                description: SecretKeySelector selects a key of a
-                                  Secret.
-                                properties:
-                                  key:
-                                    description: The key of the secret to select from.  Must
-                                      be a valid secret key.
-                                    type: string
-                                  name:
-                                    description: 'Name of the referent. More info:
-                                      https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                      TODO: Add other useful fields. apiVersion, kind,
-                                      uid?'
-                                    type: string
-                                  optional:
-                                    description: Specify whether the Secret or its
-                                      key must be defined
-                                    type: boolean
-                                required:
-                                - key
-                                type: object
-                            type: object
-                        type: object
-                      core_api_versions:
-                        description: 'Kubernetes core API version (for different Kubernetes
-                          versions) (default: [''v1''])'
-                        items:
+                          type: array
+                        max_bytes:
+                          description: 'Maximum number of bytes to flush (0 means
+                            no limit) (default: 0)'
+                          type: integer
+                        max_lines:
+                          description: 'Maximum number of lines to flush (0 means
+                            no limit) (default: 1000)'
+                          type: integer
+                        message:
+                          description: 'The field which contains the raw message text
+                            in the input JSON data. (default: "")'
                           type: string
-                        type: array
-                      data_type:
-                        description: 'Sumologic data type (default: metrics)'
-                        type: string
-                      in_namespace_path:
-                        description: 'parameters for read/write record (default: [''$.namespace''])'
-                        items:
+                        multiline_flush_interval:
+                          description: 'The interval of flushing the buffer for multiline
+                            format. (default: nil)'
                           type: string
-                        type: array
-                      in_pod_path:
-                        description: '(default: [''$.pod'',''$.pod_name''])'
-                        items:
+                        remove_tag_prefix:
+                          description: 'The prefix to be removed from the input tag
+                            when outputting a record. (default: "")'
                           type: string
-                        type: array
-                      kubernetes_url:
-                        description: 'Kubernetes API URL (default: nil)'
-                        type: string
-                      secret_dir:
-                        description: 'Service account directory (default: /var/run/secrets/kubernetes.io/serviceaccount)'
-                        type: string
-                      ssl_partial_chain:
-                        description: 'if `ca_file` is for an intermediate CA, or otherwise
-                          we do not have the root CA and want to trust the intermediate
-                          CA certs we do have, set this to `true` - this corresponds
-                          to the openssl s_client -partial_chain flag and X509_V_FLAG_PARTIAL_CHAIN
-                          (default: false)'
-                        type: boolean
-                      verify_ssl:
-                        description: 'Verify SSL (default: true)'
-                        type: boolean
-                    type: object
-                  geoip:
-                    properties:
-                      backend_library:
-                        description: Specify backend library (geoip2_c, geoip, geoip2_compat)
-                        type: string
-                      geoip_2_database:
-                        description: Specify optional geoip2 database (using bundled
-                          GeoLite2-City.mmdb by default)
-                        type: string
-                      geoip_database:
-                        description: Specify optional geoip database (using bundled
-                          GeoLiteCity databse by default)
-                        type: string
-                      geoip_lookup_keys:
-                        description: 'Specify one or more geoip lookup field which
-                          has ip address (default: host)'
-                        type: string
-                      records:
-                        description: 'Records are represented as maps: `key: value`'
-                        items:
-                          additionalProperties:
+                        stream:
+                          description: 'Separate log streams by this field in the
+                            input JSON data. (default: "")'
+                          type: string
+                      type: object
+                    enhanceK8s:
+                      properties:
+                        api_groups:
+                          description: 'Kubernetes resources api groups (default:
+                            ["apps/v1", "extensions/v1beta1"])'
+                          items:
                             type: string
-                          description: Parameters inside record directives are considered
-                            to be new key-value pairs
-                          type: object
-                        type: array
-                      skip_adding_null_record:
-                        description: To avoid get stacktrace error with `[null, null]`
-                          array for elasticsearch.
-                        type: boolean
-                    type: object
-                  grep:
-                    properties:
-                      and:
-                        items:
-                          description: Specify filtering rule. This directive contains
-                            either `regexp` or `exclude` directive.
+                          type: array
+                        bearer_token_file:
+                          description: 'Bearer token path (default: nil)'
+                          type: string
+                        ca_file:
+                          description: 'Kubernetes API CA file (default: nil)'
                           properties:
-                            exclude:
-                              items:
-                                description: Specify filtering rule to reject events.
-                                  This directive contains two parameters.
-                                properties:
-                                  key:
-                                    description: Specify field name in the record
-                                      to parse.
-                                    type: string
-                                  pattern:
-                                    description: Pattern expression to evaluate
-                                    type: string
-                                required:
-                                - key
-                                - pattern
-                                type: object
-                              type: array
-                            regexp:
-                              items:
-                                description: Specify filtering rule. This directive
-                                  contains two parameters.
-                                properties:
-                                  key:
-                                    description: Specify field name in the record
-                                      to parse.
-                                    type: string
-                                  pattern:
-                                    description: Pattern expression to evaluate
-                                    type: string
-                                required:
-                                - key
-                                - pattern
-                                type: object
-                              type: array
-                          type: object
-                        type: array
-                      exclude:
-                        items:
-                          description: Specify filtering rule to reject events. This
-                            directive contains two parameters.
-                          properties:
-                            key:
-                              description: Specify field name in the record to parse.
-                              type: string
-                            pattern:
-                              description: Pattern expression to evaluate
-                              type: string
-                          required:
-                          - key
-                          - pattern
-                          type: object
-                        type: array
-                      or:
-                        items:
-                          description: Specify filtering rule. This directive contains
-                            either `regexp` or `exclude` directive.
-                          properties:
-                            exclude:
-                              items:
-                                description: Specify filtering rule to reject events.
-                                  This directive contains two parameters.
-                                properties:
-                                  key:
-                                    description: Specify field name in the record
-                                      to parse.
-                                    type: string
-                                  pattern:
-                                    description: Pattern expression to evaluate
-                                    type: string
-                                required:
-                                - key
-                                - pattern
-                                type: object
-                              type: array
-                            regexp:
-                              items:
-                                description: Specify filtering rule. This directive
-                                  contains two parameters.
-                                properties:
-                                  key:
-                                    description: Specify field name in the record
-                                      to parse.
-                                    type: string
-                                  pattern:
-                                    description: Pattern expression to evaluate
-                                    type: string
-                                required:
-                                - key
-                                - pattern
-                                type: object
-                              type: array
-                          type: object
-                        type: array
-                      regexp:
-                        items:
-                          description: Specify filtering rule. This directive contains
-                            two parameters.
-                          properties:
-                            key:
-                              description: Specify field name in the record to parse.
-                              type: string
-                            pattern:
-                              description: Pattern expression to evaluate
-                              type: string
-                          required:
-                          - key
-                          - pattern
-                          type: object
-                        type: array
-                    type: object
-                  parser:
-                    properties:
-                      emit_invalid_record_to_error:
-                        description: 'Emit invalid record to @ERROR label. Invalid
-                          cases are: key not exist, format is not matched, unexpected
-                          error'
-                        type: boolean
-                      hash_value_field:
-                        description: Store parsed values as a hash value in a field.
-                        type: string
-                      inject_key_prefix:
-                        description: Store parsed values with specified key name prefix.
-                        type: string
-                      key_name:
-                        description: Specify field name in the record to parse. If
-                          you leave empty the Container Runtime default will be used.
-                        type: string
-                      parse:
-                        properties:
-                          delimiter:
-                            description: 'Only available when using type: ltsv (default:
-                              "\t")'
-                            type: string
-                          delimiter_pattern:
-                            description: 'Only available when using type: ltsv'
-                            type: string
-                          estimate_current_event:
-                            description: If true, use Fluent::EventTime.now(current
-                              time) as a timestamp when time_key is specified.
-                            type: boolean
-                          expression:
-                            description: Regexp expression to evaluate
-                            type: string
-                          format:
-                            description: 'Only available when using type: multi_format'
-                            type: string
-                          format_firstline:
-                            description: 'Only available when using type: multi_format'
-                            type: string
-                          keep_time_key:
-                            description: If true, keep time field in the record.
-                            type: boolean
-                          label_delimiter:
-                            description: 'Only available when using type: ltsv (default:
-                              ":")'
-                            type: string
-                          local_time:
-                            description: 'Ff true, use local time. Otherwise, UTC
-                              is used. This is exclusive with utc. (default: true)'
-                            type: boolean
-                          multiline:
-                            description: The multiline parser plugin parses multiline
-                              logs.
-                            items:
-                              type: string
-                            type: array
-                          null_empty_string:
-                            description: If true, empty string field is replaced with
-                              nil
-                            type: boolean
-                          null_value_pattern:
-                            description: ' Specify null value pattern.'
-                            type: string
-                          patterns:
-                            description: 'Only available when using type: multi_format'
-                            items:
+                            mountFrom:
+                              description: Refers to a secret value to be used through
+                                a volume mount
                               properties:
-                                estimate_current_event:
-                                  description: If true, use Fluent::EventTime.now(current
-                                    time) as a timestamp when time_key is specified.
-                                  type: boolean
-                                expression:
-                                  description: Regexp expression to evaluate
-                                  type: string
-                                format:
-                                  description: 'Only available when using type: multi_format'
-                                  type: string
-                                keep_time_key:
-                                  description: If true, keep time field in the record.
-                                  type: boolean
-                                local_time:
-                                  description: 'Ff true, use local time. Otherwise,
-                                    UTC is used. This is exclusive with utc. (default:
-                                    true)'
-                                  type: boolean
-                                null_empty_string:
-                                  description: If true, empty string field is replaced
-                                    with nil
-                                  type: boolean
-                                null_value_pattern:
-                                  description: ' Specify null value pattern.'
-                                  type: string
-                                time_format:
-                                  description: Process value using specified format.
-                                    This is available only when time_type is string
-                                  type: string
-                                time_key:
-                                  description: Specify time field for event time.
-                                    If the event doesn't have this field, current
-                                    time is used.
-                                  type: string
-                                time_type:
-                                  description: 'Parse/format value according to this
-                                    type available values: float, unixtime, string
-                                    (default: string)'
-                                  type: string
-                                timezone:
-                                  description: 'Use specified timezone. one can parse/format
-                                    the time value in the specified timezone. (default:
-                                    nil)'
-                                  type: string
-                                type:
-                                  description: 'Parse type: apache2, apache_error,
-                                    nginx, syslog, csv, tsv, ltsv, json, multiline,
-                                    none, logfmt'
-                                  type: string
-                                types:
-                                  description: 'Types casting the fields to proper
-                                    types example: field1:type, field2:type'
-                                  type: string
-                                utc:
-                                  description: 'If true, use UTC. Otherwise, local
-                                    time is used. This is exclusive with localtime
-                                    (default: false)'
-                                  type: boolean
+                                secretKeyRef:
+                                  description: SecretKeySelector selects a key of
+                                    a Secret.
+                                  properties:
+                                    key:
+                                      description: The key of the secret to select
+                                        from.  Must be a valid secret key.
+                                      type: string
+                                    name:
+                                      description: 'Name of the referent. More info:
+                                        https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                        TODO: Add other useful fields. apiVersion,
+                                        kind, uid?'
+                                      type: string
+                                    optional:
+                                      description: Specify whether the Secret or its
+                                        key must be defined
+                                      type: boolean
+                                  required:
+                                  - key
+                                  type: object
                               type: object
-                            type: array
-                          time_format:
-                            description: Process value using specified format. This
-                              is available only when time_type is string
+                            value:
+                              description: Refers to a non-secret value
+                              type: string
+                            valueFrom:
+                              description: Refers to a secret value to be used directly
+                              properties:
+                                secretKeyRef:
+                                  description: SecretKeySelector selects a key of
+                                    a Secret.
+                                  properties:
+                                    key:
+                                      description: The key of the secret to select
+                                        from.  Must be a valid secret key.
+                                      type: string
+                                    name:
+                                      description: 'Name of the referent. More info:
+                                        https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                        TODO: Add other useful fields. apiVersion,
+                                        kind, uid?'
+                                      type: string
+                                    optional:
+                                      description: Specify whether the Secret or its
+                                        key must be defined
+                                      type: boolean
+                                  required:
+                                  - key
+                                  type: object
+                              type: object
+                          type: object
+                        cache_refresh:
+                          description: 'Cache refresh (default: 60*60)'
+                          type: integer
+                        cache_refresh_variation:
+                          description: 'Cache refresh variation (default: 60*15)'
+                          type: integer
+                        cache_size:
+                          description: 'Cache size  (default: 1000)'
+                          type: integer
+                        cache_ttl:
+                          description: 'Cache TTL (default: 60*60*2)'
+                          type: integer
+                        client_cert:
+                          description: 'Kubernetes API Client certificate (default:
+                            nil)'
+                          properties:
+                            mountFrom:
+                              description: Refers to a secret value to be used through
+                                a volume mount
+                              properties:
+                                secretKeyRef:
+                                  description: SecretKeySelector selects a key of
+                                    a Secret.
+                                  properties:
+                                    key:
+                                      description: The key of the secret to select
+                                        from.  Must be a valid secret key.
+                                      type: string
+                                    name:
+                                      description: 'Name of the referent. More info:
+                                        https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                        TODO: Add other useful fields. apiVersion,
+                                        kind, uid?'
+                                      type: string
+                                    optional:
+                                      description: Specify whether the Secret or its
+                                        key must be defined
+                                      type: boolean
+                                  required:
+                                  - key
+                                  type: object
+                              type: object
+                            value:
+                              description: Refers to a non-secret value
+                              type: string
+                            valueFrom:
+                              description: Refers to a secret value to be used directly
+                              properties:
+                                secretKeyRef:
+                                  description: SecretKeySelector selects a key of
+                                    a Secret.
+                                  properties:
+                                    key:
+                                      description: The key of the secret to select
+                                        from.  Must be a valid secret key.
+                                      type: string
+                                    name:
+                                      description: 'Name of the referent. More info:
+                                        https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                        TODO: Add other useful fields. apiVersion,
+                                        kind, uid?'
+                                      type: string
+                                    optional:
+                                      description: Specify whether the Secret or its
+                                        key must be defined
+                                      type: boolean
+                                  required:
+                                  - key
+                                  type: object
+                              type: object
+                          type: object
+                        client_key:
+                          description: '// Kubernetes API Client certificate key (default:
+                            nil)'
+                          properties:
+                            mountFrom:
+                              description: Refers to a secret value to be used through
+                                a volume mount
+                              properties:
+                                secretKeyRef:
+                                  description: SecretKeySelector selects a key of
+                                    a Secret.
+                                  properties:
+                                    key:
+                                      description: The key of the secret to select
+                                        from.  Must be a valid secret key.
+                                      type: string
+                                    name:
+                                      description: 'Name of the referent. More info:
+                                        https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                        TODO: Add other useful fields. apiVersion,
+                                        kind, uid?'
+                                      type: string
+                                    optional:
+                                      description: Specify whether the Secret or its
+                                        key must be defined
+                                      type: boolean
+                                  required:
+                                  - key
+                                  type: object
+                              type: object
+                            value:
+                              description: Refers to a non-secret value
+                              type: string
+                            valueFrom:
+                              description: Refers to a secret value to be used directly
+                              properties:
+                                secretKeyRef:
+                                  description: SecretKeySelector selects a key of
+                                    a Secret.
+                                  properties:
+                                    key:
+                                      description: The key of the secret to select
+                                        from.  Must be a valid secret key.
+                                      type: string
+                                    name:
+                                      description: 'Name of the referent. More info:
+                                        https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                        TODO: Add other useful fields. apiVersion,
+                                        kind, uid?'
+                                      type: string
+                                    optional:
+                                      description: Specify whether the Secret or its
+                                        key must be defined
+                                      type: boolean
+                                  required:
+                                  - key
+                                  type: object
+                              type: object
+                          type: object
+                        core_api_versions:
+                          description: 'Kubernetes core API version (for different
+                            Kubernetes versions) (default: [''v1''])'
+                          items:
                             type: string
-                          time_key:
-                            description: Specify time field for event time. If the
-                              event doesn't have this field, current time is used.
+                          type: array
+                        data_type:
+                          description: 'Sumologic data type (default: metrics)'
+                          type: string
+                        in_namespace_path:
+                          description: 'parameters for read/write record (default:
+                            [''$.namespace''])'
+                          items:
                             type: string
-                          time_type:
-                            description: 'Parse/format value according to this type
-                              available values: float, unixtime, string (default:
-                              string)'
+                          type: array
+                        in_pod_path:
+                          description: '(default: [''$.pod'',''$.pod_name''])'
+                          items:
                             type: string
-                          timezone:
-                            description: 'Use specified timezone. one can parse/format
-                              the time value in the specified timezone. (default:
-                              nil)'
-                            type: string
-                          type:
-                            description: 'Parse type: apache2, apache_error, nginx,
-                              syslog, csv, tsv, ltsv, json, multiline, none, logfmt'
-                            type: string
-                          types:
-                            description: 'Types casting the fields to proper types
-                              example: field1:type, field2:type'
-                            type: string
-                          utc:
-                            description: 'If true, use UTC. Otherwise, local time
-                              is used. This is exclusive with localtime (default:
-                              false)'
-                            type: boolean
-                        type: object
-                      parsers:
-                        description: Deprecated, use `parse` instead
-                        items:
+                          type: array
+                        kubernetes_url:
+                          description: 'Kubernetes API URL (default: nil)'
+                          type: string
+                        secret_dir:
+                          description: 'Service account directory (default: /var/run/secrets/kubernetes.io/serviceaccount)'
+                          type: string
+                        ssl_partial_chain:
+                          description: 'if `ca_file` is for an intermediate CA, or
+                            otherwise we do not have the root CA and want to trust
+                            the intermediate CA certs we do have, set this to `true`
+                            - this corresponds to the openssl s_client -partial_chain
+                            flag and X509_V_FLAG_PARTIAL_CHAIN (default: false)'
+                          type: boolean
+                        verify_ssl:
+                          description: 'Verify SSL (default: true)'
+                          type: boolean
+                      type: object
+                    geoip:
+                      properties:
+                        backend_library:
+                          description: Specify backend library (geoip2_c, geoip, geoip2_compat)
+                          type: string
+                        geoip_2_database:
+                          description: Specify optional geoip2 database (using bundled
+                            GeoLite2-City.mmdb by default)
+                          type: string
+                        geoip_database:
+                          description: Specify optional geoip database (using bundled
+                            GeoLiteCity databse by default)
+                          type: string
+                        geoip_lookup_keys:
+                          description: 'Specify one or more geoip lookup field which
+                            has ip address (default: host)'
+                          type: string
+                        records:
+                          description: 'Records are represented as maps: `key: value`'
+                          items:
+                            additionalProperties:
+                              type: string
+                            description: Parameters inside record directives are considered
+                              to be new key-value pairs
+                            type: object
+                          type: array
+                        skip_adding_null_record:
+                          description: To avoid get stacktrace error with `[null,
+                            null]` array for elasticsearch.
+                          type: boolean
+                      type: object
+                    grep:
+                      properties:
+                        and:
+                          items:
+                            description: Specify filtering rule. This directive contains
+                              either `regexp` or `exclude` directive.
+                            properties:
+                              exclude:
+                                items:
+                                  description: Specify filtering rule to reject events.
+                                    This directive contains two parameters.
+                                  properties:
+                                    key:
+                                      description: Specify field name in the record
+                                        to parse.
+                                      type: string
+                                    pattern:
+                                      description: Pattern expression to evaluate
+                                      type: string
+                                  required:
+                                  - key
+                                  - pattern
+                                  type: object
+                                type: array
+                              regexp:
+                                items:
+                                  description: Specify filtering rule. This directive
+                                    contains two parameters.
+                                  properties:
+                                    key:
+                                      description: Specify field name in the record
+                                        to parse.
+                                      type: string
+                                    pattern:
+                                      description: Pattern expression to evaluate
+                                      type: string
+                                  required:
+                                  - key
+                                  - pattern
+                                  type: object
+                                type: array
+                            type: object
+                          type: array
+                        exclude:
+                          items:
+                            description: Specify filtering rule to reject events.
+                              This directive contains two parameters.
+                            properties:
+                              key:
+                                description: Specify field name in the record to parse.
+                                type: string
+                              pattern:
+                                description: Pattern expression to evaluate
+                                type: string
+                            required:
+                            - key
+                            - pattern
+                            type: object
+                          type: array
+                        or:
+                          items:
+                            description: Specify filtering rule. This directive contains
+                              either `regexp` or `exclude` directive.
+                            properties:
+                              exclude:
+                                items:
+                                  description: Specify filtering rule to reject events.
+                                    This directive contains two parameters.
+                                  properties:
+                                    key:
+                                      description: Specify field name in the record
+                                        to parse.
+                                      type: string
+                                    pattern:
+                                      description: Pattern expression to evaluate
+                                      type: string
+                                  required:
+                                  - key
+                                  - pattern
+                                  type: object
+                                type: array
+                              regexp:
+                                items:
+                                  description: Specify filtering rule. This directive
+                                    contains two parameters.
+                                  properties:
+                                    key:
+                                      description: Specify field name in the record
+                                        to parse.
+                                      type: string
+                                    pattern:
+                                      description: Pattern expression to evaluate
+                                      type: string
+                                  required:
+                                  - key
+                                  - pattern
+                                  type: object
+                                type: array
+                            type: object
+                          type: array
+                        regexp:
+                          items:
+                            description: Specify filtering rule. This directive contains
+                              two parameters.
+                            properties:
+                              key:
+                                description: Specify field name in the record to parse.
+                                type: string
+                              pattern:
+                                description: Pattern expression to evaluate
+                                type: string
+                            required:
+                            - key
+                            - pattern
+                            type: object
+                          type: array
+                      type: object
+                    parser:
+                      properties:
+                        emit_invalid_record_to_error:
+                          description: 'Emit invalid record to @ERROR label. Invalid
+                            cases are: key not exist, format is not matched, unexpected
+                            error'
+                          type: boolean
+                        hash_value_field:
+                          description: Store parsed values as a hash value in a field.
+                          type: string
+                        inject_key_prefix:
+                          description: Store parsed values with specified key name
+                            prefix.
+                          type: string
+                        key_name:
+                          description: Specify field name in the record to parse.
+                            If you leave empty the Container Runtime default will
+                            be used.
+                          type: string
+                        parse:
                           properties:
                             delimiter:
                               description: 'Only available when using type: ltsv (default:
@@ -878,302 +740,455 @@ spec:
                                 false)'
                               type: boolean
                           type: object
-                        type: array
-                      remove_key_name_field:
-                        description: Remove key_name field when parsing is succeeded
-                        type: boolean
-                      replace_invalid_sequence:
-                        description: If true, invalid string is replaced with safe
-                          characters and re-parse it.
-                        type: boolean
-                      reserve_data:
-                        description: Keep original key-value pair in parsed result.
-                        type: boolean
-                      reserve_time:
-                        description: Keep original event time in parsed result.
-                        type: boolean
-                    type: object
-                  prometheus:
-                    properties:
-                      labels:
-                        additionalProperties:
-                          type: string
-                        type: object
-                      metrics:
-                        items:
-                          properties:
-                            buckets:
-                              description: Buckets of record for instrumentation
-                              type: string
-                            desc:
-                              description: Description of metric
-                              type: string
-                            key:
-                              description: Key name of record for instrumentation.
-                              type: string
-                            labels:
-                              additionalProperties:
+                        parsers:
+                          description: Deprecated, use `parse` instead
+                          items:
+                            properties:
+                              delimiter:
+                                description: 'Only available when using type: ltsv
+                                  (default: "\t")'
                                 type: string
-                              description: Additional labels for this metric
-                              type: object
-                            name:
-                              description: Metrics name
-                              type: string
-                            type:
-                              description: Metrics type [counter](https://github.com/fluent/fluent-plugin-prometheus#counter-type),
-                                [gauge](https://github.com/fluent/fluent-plugin-prometheus#gauge-type),
-                                [summary](https://github.com/fluent/fluent-plugin-prometheus#summary-type),
-                                [histogram](https://github.com/fluent/fluent-plugin-prometheus#histogram-type)
-                              type: string
-                          required:
-                          - desc
-                          - name
-                          - type
-                          type: object
-                        type: array
-                    type: object
-                  record_modifier:
-                    properties:
-                      char_encoding:
-                        description: Fluentd including some plugins treats logs as
-                          a BINARY by default to forward. To overide that, use a target
-                          encoding or a from:to encoding here.
-                        type: string
-                      prepare_value:
-                        description: Prepare values for filtering in configure phase.
-                          Prepared values can be used in <record>. You can write any
-                          ruby code.
-                        type: string
-                      records:
-                        description: 'Add records docs at: https://github.com/repeatedly/fluent-plugin-record-modifier
-                          Records are represented as maps: `key: value`'
-                        items:
+                              delimiter_pattern:
+                                description: 'Only available when using type: ltsv'
+                                type: string
+                              estimate_current_event:
+                                description: If true, use Fluent::EventTime.now(current
+                                  time) as a timestamp when time_key is specified.
+                                type: boolean
+                              expression:
+                                description: Regexp expression to evaluate
+                                type: string
+                              format:
+                                description: 'Only available when using type: multi_format'
+                                type: string
+                              format_firstline:
+                                description: 'Only available when using type: multi_format'
+                                type: string
+                              keep_time_key:
+                                description: If true, keep time field in the record.
+                                type: boolean
+                              label_delimiter:
+                                description: 'Only available when using type: ltsv
+                                  (default: ":")'
+                                type: string
+                              local_time:
+                                description: 'Ff true, use local time. Otherwise,
+                                  UTC is used. This is exclusive with utc. (default:
+                                  true)'
+                                type: boolean
+                              multiline:
+                                description: The multiline parser plugin parses multiline
+                                  logs.
+                                items:
+                                  type: string
+                                type: array
+                              null_empty_string:
+                                description: If true, empty string field is replaced
+                                  with nil
+                                type: boolean
+                              null_value_pattern:
+                                description: ' Specify null value pattern.'
+                                type: string
+                              patterns:
+                                description: 'Only available when using type: multi_format'
+                                items:
+                                  properties:
+                                    estimate_current_event:
+                                      description: If true, use Fluent::EventTime.now(current
+                                        time) as a timestamp when time_key is specified.
+                                      type: boolean
+                                    expression:
+                                      description: Regexp expression to evaluate
+                                      type: string
+                                    format:
+                                      description: 'Only available when using type:
+                                        multi_format'
+                                      type: string
+                                    keep_time_key:
+                                      description: If true, keep time field in the
+                                        record.
+                                      type: boolean
+                                    local_time:
+                                      description: 'Ff true, use local time. Otherwise,
+                                        UTC is used. This is exclusive with utc. (default:
+                                        true)'
+                                      type: boolean
+                                    null_empty_string:
+                                      description: If true, empty string field is
+                                        replaced with nil
+                                      type: boolean
+                                    null_value_pattern:
+                                      description: ' Specify null value pattern.'
+                                      type: string
+                                    time_format:
+                                      description: Process value using specified format.
+                                        This is available only when time_type is string
+                                      type: string
+                                    time_key:
+                                      description: Specify time field for event time.
+                                        If the event doesn't have this field, current
+                                        time is used.
+                                      type: string
+                                    time_type:
+                                      description: 'Parse/format value according to
+                                        this type available values: float, unixtime,
+                                        string (default: string)'
+                                      type: string
+                                    timezone:
+                                      description: 'Use specified timezone. one can
+                                        parse/format the time value in the specified
+                                        timezone. (default: nil)'
+                                      type: string
+                                    type:
+                                      description: 'Parse type: apache2, apache_error,
+                                        nginx, syslog, csv, tsv, ltsv, json, multiline,
+                                        none, logfmt'
+                                      type: string
+                                    types:
+                                      description: 'Types casting the fields to proper
+                                        types example: field1:type, field2:type'
+                                      type: string
+                                    utc:
+                                      description: 'If true, use UTC. Otherwise, local
+                                        time is used. This is exclusive with localtime
+                                        (default: false)'
+                                      type: boolean
+                                  type: object
+                                type: array
+                              time_format:
+                                description: Process value using specified format.
+                                  This is available only when time_type is string
+                                type: string
+                              time_key:
+                                description: Specify time field for event time. If
+                                  the event doesn't have this field, current time
+                                  is used.
+                                type: string
+                              time_type:
+                                description: 'Parse/format value according to this
+                                  type available values: float, unixtime, string (default:
+                                  string)'
+                                type: string
+                              timezone:
+                                description: 'Use specified timezone. one can parse/format
+                                  the time value in the specified timezone. (default:
+                                  nil)'
+                                type: string
+                              type:
+                                description: 'Parse type: apache2, apache_error, nginx,
+                                  syslog, csv, tsv, ltsv, json, multiline, none, logfmt'
+                                type: string
+                              types:
+                                description: 'Types casting the fields to proper types
+                                  example: field1:type, field2:type'
+                                type: string
+                              utc:
+                                description: 'If true, use UTC. Otherwise, local time
+                                  is used. This is exclusive with localtime (default:
+                                  false)'
+                                type: boolean
+                            type: object
+                          type: array
+                        remove_key_name_field:
+                          description: Remove key_name field when parsing is succeeded
+                          type: boolean
+                        replace_invalid_sequence:
+                          description: If true, invalid string is replaced with safe
+                            characters and re-parse it.
+                          type: boolean
+                        reserve_data:
+                          description: Keep original key-value pair in parsed result.
+                          type: boolean
+                        reserve_time:
+                          description: Keep original event time in parsed result.
+                          type: boolean
+                      type: object
+                    prometheus:
+                      properties:
+                        labels:
                           additionalProperties:
                             type: string
-                          description: Parameters inside record directives are considered
-                            to be new key-value pairs
                           type: object
-                        type: array
-                      remove_keys:
-                        description: A comma-delimited list of keys to delete
-                        type: string
-                      replaces:
-                        description: Replace specific value for keys
-                        items:
-                          description: Specify replace rule. This directive contains
-                            three parameters.
-                          properties:
-                            expression:
-                              description: Regular expression
+                        metrics:
+                          items:
+                            properties:
+                              buckets:
+                                description: Buckets of record for instrumentation
+                                type: string
+                              desc:
+                                description: Description of metric
+                                type: string
+                              key:
+                                description: Key name of record for instrumentation.
+                                type: string
+                              labels:
+                                additionalProperties:
+                                  type: string
+                                description: Additional labels for this metric
+                                type: object
+                              name:
+                                description: Metrics name
+                                type: string
+                              type:
+                                description: Metrics type [counter](https://github.com/fluent/fluent-plugin-prometheus#counter-type),
+                                  [gauge](https://github.com/fluent/fluent-plugin-prometheus#gauge-type),
+                                  [summary](https://github.com/fluent/fluent-plugin-prometheus#summary-type),
+                                  [histogram](https://github.com/fluent/fluent-plugin-prometheus#histogram-type)
+                                type: string
+                            required:
+                            - desc
+                            - name
+                            - type
+                            type: object
+                          type: array
+                      type: object
+                    record_modifier:
+                      properties:
+                        char_encoding:
+                          description: Fluentd including some plugins treats logs
+                            as a BINARY by default to forward. To overide that, use
+                            a target encoding or a from:to encoding here.
+                          type: string
+                        prepare_value:
+                          description: Prepare values for filtering in configure phase.
+                            Prepared values can be used in <record>. You can write
+                            any ruby code.
+                          type: string
+                        records:
+                          description: 'Add records docs at: https://github.com/repeatedly/fluent-plugin-record-modifier
+                            Records are represented as maps: `key: value`'
+                          items:
+                            additionalProperties:
                               type: string
-                            key:
-                              description: Key to search for
+                            description: Parameters inside record directives are considered
+                              to be new key-value pairs
+                            type: object
+                          type: array
+                        remove_keys:
+                          description: A comma-delimited list of keys to delete
+                          type: string
+                        replaces:
+                          description: Replace specific value for keys
+                          items:
+                            description: Specify replace rule. This directive contains
+                              three parameters.
+                            properties:
+                              expression:
+                                description: Regular expression
+                                type: string
+                              key:
+                                description: Key to search for
+                                type: string
+                              replace:
+                                description: Value to replace with
+                                type: string
+                            required:
+                            - expression
+                            - key
+                            - replace
+                            type: object
+                          type: array
+                        whitelist_keys:
+                          description: This is exclusive with remove_keys
+                          type: string
+                      type: object
+                    record_transformer:
+                      properties:
+                        auto_typecast:
+                          description: 'Use original value type. (default: true)'
+                          type: boolean
+                        enable_ruby:
+                          description: 'When set to true, the full Ruby syntax is
+                            enabled in the ${...} expression. (default: false)'
+                          type: boolean
+                        keep_keys:
+                          description: A comma-delimited list of keys to keep.
+                          type: string
+                        records:
+                          description: 'Add records docs at: https://docs.fluentd.org/filter/record_transformer
+                            Records are represented as maps: `key: value`'
+                          items:
+                            additionalProperties:
                               type: string
-                            replace:
-                              description: Value to replace with
-                              type: string
-                          required:
-                          - expression
-                          - key
-                          - replace
-                          type: object
-                        type: array
-                      whitelist_keys:
-                        description: This is exclusive with remove_keys
-                        type: string
-                    type: object
-                  record_transformer:
-                    properties:
-                      auto_typecast:
-                        description: 'Use original value type. (default: true)'
-                        type: boolean
-                      enable_ruby:
-                        description: 'When set to true, the full Ruby syntax is enabled
-                          in the ${...} expression. (default: false)'
-                        type: boolean
-                      keep_keys:
-                        description: A comma-delimited list of keys to keep.
-                        type: string
-                      records:
-                        description: 'Add records docs at: https://docs.fluentd.org/filter/record_transformer
-                          Records are represented as maps: `key: value`'
-                        items:
+                            description: Parameters inside record directives are considered
+                              to be new key-value pairs
+                            type: object
+                          type: array
+                        remove_keys:
+                          description: A comma-delimited list of keys to delete
+                          type: string
+                        renew_record:
+                          description: 'Create new Hash to transform incoming data
+                            (default: false)'
+                          type: boolean
+                        renew_time_key:
+                          description: Specify field name of the record to overwrite
+                            the time of events. Its value must be unix time.
+                          type: string
+                      type: object
+                    stdout:
+                      properties:
+                        output_type:
+                          description: This is the option of stdout format.
+                          type: string
+                      type: object
+                    sumologic:
+                      properties:
+                        collector_key_name:
+                          description: 'CollectorKey Name (default: "_collector")'
+                          type: string
+                        collector_value:
+                          description: 'Collector Value (default: "undefined")'
+                          type: string
+                        exclude_container_regex:
+                          description: 'Exclude Container Regex (default: "")'
+                          type: string
+                        exclude_facility_regex:
+                          description: 'Exclude Facility Regex (default: "")'
+                          type: string
+                        exclude_host_regex:
+                          description: 'Exclude Host Regex (default: "")'
+                          type: string
+                        exclude_namespace_regex:
+                          description: 'Exclude Namespace Regex (default: "")'
+                          type: string
+                        exclude_pod_regex:
+                          description: 'Exclude Pod Regex (default: "")'
+                          type: string
+                        exclude_priority_regex:
+                          description: 'Exclude Priority Regex (default: "")'
+                          type: string
+                        exclude_unit_regex:
+                          description: 'Exclude Unit Regex (default: "")'
+                          type: string
+                        log_format:
+                          description: 'Log Format (default: json)'
+                          type: string
+                        source_category:
+                          description: 'Source Category (default: "%{namespace}/%{pod_name}")'
+                          type: string
+                        source_category_key_name:
+                          description: 'Source CategoryKey Name (default: "_sourceCategory")'
+                          type: string
+                        source_category_prefix:
+                          description: 'Source Category Prefix (default: kubernetes/)'
+                          type: string
+                        source_category_replace_dash:
+                          description: 'Source Category Replace Dash (default: "/")'
+                          type: string
+                        source_host:
+                          description: 'Source Host (default: "")'
+                          type: string
+                        source_host_key_name:
+                          description: 'Source HostKey Name (default: "_sourceHost")'
+                          type: string
+                        source_name:
+                          description: 'Source Name (default: "%{namespace}.%{pod}.%{container}")'
+                          type: string
+                        source_name_key_name:
+                          description: 'Source NameKey Name (default: "_sourceName")'
+                          type: string
+                        tracing_annotation_prefix:
+                          description: 'Tracing Annotation Prefix (default: "pod_annotation_")'
+                          type: string
+                        tracing_container_name:
+                          description: 'Tracing Container Name (default: "container_name")'
+                          type: string
+                        tracing_format:
+                          description: 'Tracing Format (default: false)'
+                          type: boolean
+                        tracing_host:
+                          description: 'Tracing Host (default: "hostname")'
+                          type: string
+                        tracing_label_prefix:
+                          description: 'Tracing Label Prefix (default: "pod_label_")'
+                          type: string
+                        tracing_namespace:
+                          description: 'Tracing Namespace (default: "namespace")'
+                          type: string
+                        tracing_pod:
+                          description: 'Tracing Pod (default: "pod")'
+                          type: string
+                        tracing_pod_id:
+                          description: 'Tracing Pod ID (default: "pod_id")'
+                          type: string
+                      type: object
+                    tag_normaliser:
+                      properties:
+                        format:
+                          description: Re-Tag log messages info at [github](https://github.com/banzaicloud/fluent-plugin-tag-normaliser)
+                          type: string
+                      type: object
+                    throttle:
+                      properties:
+                        group_bucket_limit:
+                          description: 'Maximum number logs allowed per groups over
+                            the period of group_bucket_period_s (default: 6000)'
+                          type: integer
+                        group_bucket_period_s:
+                          description: 'This is the period of of time over which group_bucket_limit
+                            applies (default: 60)'
+                          type: integer
+                        group_drop_logs:
+                          description: 'When a group reaches its limit, logs will
+                            be dropped from further processing if this value is true
+                            (default: true)'
+                          type: boolean
+                        group_key:
+                          description: 'Used to group logs. Groups are rate limited
+                            independently (default: kubernetes.container_name)'
+                          type: string
+                        group_reset_rate_s:
+                          description: 'After a group has exceeded its bucket limit,
+                            logs are dropped until the rate per second falls below
+                            or equal to group_reset_rate_s. (default: group_bucket_limit/group_bucket_period_s)'
+                          type: integer
+                        group_warning_delay_s:
+                          description: 'When a group reaches its limit and as long
+                            as it is not reset, a warning message with the current
+                            log rate of the group is emitted repeatedly. This is the
+                            delay between every repetition. (default: 10 seconds)'
+                          type: integer
+                      type: object
+                  type: object
+                nullable: true
+                type: array
+              passedMatches:
+                items:
+                  properties:
+                    exclude:
+                      properties:
+                        container_names:
+                          items:
+                            type: string
+                          type: array
+                        hosts:
+                          items:
+                            type: string
+                          type: array
+                        labels:
                           additionalProperties:
                             type: string
-                          description: Parameters inside record directives are considered
-                            to be new key-value pairs
                           type: object
-                        type: array
-                      remove_keys:
-                        description: A comma-delimited list of keys to delete
-                        type: string
-                      renew_record:
-                        description: 'Create new Hash to transform incoming data (default:
-                          false)'
-                        type: boolean
-                      renew_time_key:
-                        description: Specify field name of the record to overwrite
-                          the time of events. Its value must be unix time.
-                        type: string
-                    type: object
-                  stdout:
-                    properties:
-                      output_type:
-                        description: This is the option of stdout format.
-                        type: string
-                    type: object
-                  sumologic:
-                    properties:
-                      collector_key_name:
-                        description: 'CollectorKey Name (default: "_collector")'
-                        type: string
-                      collector_value:
-                        description: 'Collector Value (default: "undefined")'
-                        type: string
-                      exclude_container_regex:
-                        description: 'Exclude Container Regex (default: "")'
-                        type: string
-                      exclude_facility_regex:
-                        description: 'Exclude Facility Regex (default: "")'
-                        type: string
-                      exclude_host_regex:
-                        description: 'Exclude Host Regex (default: "")'
-                        type: string
-                      exclude_namespace_regex:
-                        description: 'Exclude Namespace Regex (default: "")'
-                        type: string
-                      exclude_pod_regex:
-                        description: 'Exclude Pod Regex (default: "")'
-                        type: string
-                      exclude_priority_regex:
-                        description: 'Exclude Priority Regex (default: "")'
-                        type: string
-                      exclude_unit_regex:
-                        description: 'Exclude Unit Regex (default: "")'
-                        type: string
-                      log_format:
-                        description: 'Log Format (default: json)'
-                        type: string
-                      source_category:
-                        description: 'Source Category (default: "%{namespace}/%{pod_name}")'
-                        type: string
-                      source_category_key_name:
-                        description: 'Source CategoryKey Name (default: "_sourceCategory")'
-                        type: string
-                      source_category_prefix:
-                        description: 'Source Category Prefix (default: kubernetes/)'
-                        type: string
-                      source_category_replace_dash:
-                        description: 'Source Category Replace Dash (default: "/")'
-                        type: string
-                      source_host:
-                        description: 'Source Host (default: "")'
-                        type: string
-                      source_host_key_name:
-                        description: 'Source HostKey Name (default: "_sourceHost")'
-                        type: string
-                      source_name:
-                        description: 'Source Name (default: "%{namespace}.%{pod}.%{container}")'
-                        type: string
-                      source_name_key_name:
-                        description: 'Source NameKey Name (default: "_sourceName")'
-                        type: string
-                      tracing_annotation_prefix:
-                        description: 'Tracing Annotation Prefix (default: "pod_annotation_")'
-                        type: string
-                      tracing_container_name:
-                        description: 'Tracing Container Name (default: "container_name")'
-                        type: string
-                      tracing_format:
-                        description: 'Tracing Format (default: false)'
-                        type: boolean
-                      tracing_host:
-                        description: 'Tracing Host (default: "hostname")'
-                        type: string
-                      tracing_label_prefix:
-                        description: 'Tracing Label Prefix (default: "pod_label_")'
-                        type: string
-                      tracing_namespace:
-                        description: 'Tracing Namespace (default: "namespace")'
-                        type: string
-                      tracing_pod:
-                        description: 'Tracing Pod (default: "pod")'
-                        type: string
-                      tracing_pod_id:
-                        description: 'Tracing Pod ID (default: "pod_id")'
-                        type: string
-                    type: object
-                  tag_normaliser:
-                    properties:
-                      format:
-                        description: Re-Tag log messages info at [github](https://github.com/banzaicloud/fluent-plugin-tag-normaliser)
-                        type: string
-                    type: object
-                  throttle:
-                    properties:
-                      group_bucket_limit:
-                        description: 'Maximum number logs allowed per groups over
-                          the period of group_bucket_period_s (default: 6000)'
-                        type: integer
-                      group_bucket_period_s:
-                        description: 'This is the period of of time over which group_bucket_limit
-                          applies (default: 60)'
-                        type: integer
-                      group_drop_logs:
-                        description: 'When a group reaches its limit, logs will be
-                          dropped from further processing if this value is true (default:
-                          true)'
-                        type: boolean
-                      group_key:
-                        description: 'Used to group logs. Groups are rate limited
-                          independently (default: kubernetes.container_name)'
-                        type: string
-                      group_reset_rate_s:
-                        description: 'After a group has exceeded its bucket limit,
-                          logs are dropped until the rate per second falls below or
-                          equal to group_reset_rate_s. (default: group_bucket_limit/group_bucket_period_s)'
-                        type: integer
-                      group_warning_delay_s:
-                        description: 'When a group reaches its limit and as long as
-                          it is not reset, a warning message with the current log
-                          rate of the group is emitted repeatedly. This is the delay
-                          between every repetition. (default: 10 seconds)'
-                        type: integer
-                    type: object
-                type: object
-              failedMatch:
-                properties:
-                  exclude:
-                    properties:
-                      container_names:
-                        items:
-                          type: string
-                        type: array
-                      hosts:
-                        items:
-                          type: string
-                        type: array
-                      labels:
-                        additionalProperties:
-                          type: string
-                        type: object
-                    type: object
-                  select:
-                    properties:
-                      container_names:
-                        items:
-                          type: string
-                        type: array
-                      hosts:
-                        items:
-                          type: string
-                        type: array
-                      labels:
-                        additionalProperties:
-                          type: string
-                        type: object
-                    type: object
-                type: object
+                      type: object
+                    select:
+                      properties:
+                        container_names:
+                          items:
+                            type: string
+                          type: array
+                        hosts:
+                          items:
+                            type: string
+                          type: array
+                        labels:
+                          additionalProperties:
+                            type: string
+                          type: object
+                      type: object
+                  type: object
+                nullable: true
+                type: array
               status:
                 default: Created
                 enum:
@@ -1183,8 +1198,8 @@ spec:
                 - Error
                 type: string
             required:
-            - failedFilter
-            - failedMatch
+            - passedFilters
+            - passedMatches
             - status
             type: object
         type: object
