@@ -51,6 +51,8 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 
 	logger.V(1).Info("deployed config map with simulation.log", "uuid", configMap.ObjectMeta.UID)
 
+	// TODO: Add node selector
+	// TODO: set the name based on flowtest uuid
 	var referencePod v1.Pod
 	if err := r.Get(ctx, types.NamespacedName{
 		Namespace: flowTest.Spec.ReferencePod.Namespace,
@@ -184,11 +186,11 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 		targetFlow := *flowTemplate.DeepCopy()
 		targetOutput := *outTemplate.DeepCopy()
 
-		targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", targetFlow.ObjectMeta.Name, i)
+		targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", flowTest.ObjectMeta.UID, i)
 		targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 		targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
 
-		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", targetFlow.ObjectMeta.Name, i)
+		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", flowTest.ObjectMeta.UID, i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
 		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s/%s/", targetOutput.Spec.HTTPOutput.Endpoint, targetFlow.ObjectMeta.Name)
@@ -213,16 +215,18 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 		targetFlow := *flowTemplate.DeepCopy()
 		targetOutput := *outTemplate.DeepCopy()
 
-		targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", targetFlow.ObjectMeta.Name, i)
+		targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", flowTest.ObjectMeta.UID, i)
 		targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "filter"
 		targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 
-		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", targetFlow.ObjectMeta.Name, i)
+		targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", flowTest.ObjectMeta.UID, i)
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "filter"
 		targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 		targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s/%s/", targetOutput.Spec.HTTPOutput.Endpoint, targetFlow.ObjectMeta.Name)
 
 		targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
+
+		targetFlow.Spec.Match = nil
 
 		targetFlow.Spec.Filters = referenceFlow.Spec.Filters[:x]
 
