@@ -22,17 +22,18 @@ spec:
   match:
     - select:
         labels:
+          loggingplumber.isala.me/test: invalid
+    - select:
+        labels:
           loggingplumber.isala.me/test: simulations
   filters:
     - record_modifier:
         records:
           - foo: "bar"
-#    - select:
-#        labels:
-#          app.kubernetes.io/something: b
-#    - select:
-#        labels:
-#          app.kubernetes.io/someotherthing: c
+    - grep:
+        regexp:
+          - key: first
+            pattern: /^5\d\d$/
 ---
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Output
