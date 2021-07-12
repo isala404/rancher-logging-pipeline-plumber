@@ -1,4 +1,4 @@
-FROM golang:alpine as build
+FROM golang:1.16-alpine as build
 WORKDIR /build
 COPY . .
 RUN go build -o pod-simulator main.go

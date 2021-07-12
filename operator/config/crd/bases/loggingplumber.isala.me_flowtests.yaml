@@ -84,7 +84,7 @@ spec:
           status:
             description: FlowTestStatus defines the observed state of FlowTest
             properties:
-              passedFilters:
+              failedFilters:
                 items:
                   description: Filter definition for FlowSpec
                   properties:
@@ -1153,7 +1153,7 @@ spec:
                   type: object
                 nullable: true
                 type: array
-              passedMatches:
+              failedMatches:
                 items:
                   properties:
                     exclude:
@@ -1198,8 +1198,8 @@ spec:
                 - Error
                 type: string
             required:
-            - passedFilters
-            - passedMatches
+            - failedFilters
+            - failedMatches
             - status
             type: object
         type: object

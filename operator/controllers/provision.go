@@ -51,7 +51,6 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 
 	logger.V(1).Info("deployed config map with simulation.log", "uuid", configMap.ObjectMeta.UID)
 
-	// TODO: Add node selector
 	// TODO: set the name based on flowtest uuid
 	var referencePod v1.Pod
 	if err := r.Get(ctx, types.NamespacedName{
@@ -67,13 +66,13 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 			Kind:       "Pod",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-simulation", referencePod.ObjectMeta.Name),
+			Name:      fmt.Sprintf("%s-simulation", flowTest.UID),
 			Namespace: flowTest.Spec.ReferencePod.Namespace,
 			Labels:    map[string]string{},
 		},
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{{
-				// TODO: Handle more than or less than 1 Container
+				// TODO: Handle more than or less than 1 Container (#12)
 				Name:         referencePod.Spec.Containers[0].Name,
 				Image:        "k3d-rancher-logging-explorer-registry:5000/rancher-logging-explorer/pod-simulator:latest",
 				VolumeMounts: []v1.VolumeMount{{Name: "config-volume", MountPath: "/var/logs"}},
@@ -88,6 +87,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 					},
 				},
 			},
+			NodeSelector: referencePod.Spec.NodeSelector,
 		},
 	}
 
@@ -152,11 +152,22 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		logger.V(1).Info("found a already deployed log output pod", "pod-uuid", outputPod.UID)
 	}
 
-	if err := r.deploySlicedFlows(ctx, extraLabels); err != nil {
+	var referenceFlow flowv1beta1.Flow
+	if err := r.Get(ctx, types.NamespacedName{
+		Namespace: flowTest.Spec.ReferenceFlow.Namespace,
+		Name:      flowTest.Spec.ReferenceFlow.Name,
+	}, &referenceFlow); err != nil {
+		return err
+	}
+
+	if err := r.deploySlicedFlows(ctx, referenceFlow, extraLabels); err != nil {
 		return err
 	}
 
 	flowTest.Status.Status = loggingplumberv1alpha1.Running
+
+	flowTest.Status.FailedFilters = referenceFlow.Spec.Filters
+	flowTest.Status.FailedMatches = referenceFlow.Spec.Match
 
 	if err := r.Status().Update(ctx, &flowTest); err != nil {
 		logger.Error(err, "failed to update flowtest status")
@@ -166,17 +177,9 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 	return nil
 }
 
-func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels map[string]string) error {
+func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, referenceFlow flowv1beta1.Flow, extraLabels map[string]string) error {
 	logger := log.FromContext(ctx)
 	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
-
-	var referenceFlow flowv1beta1.Flow
-	if err := r.Get(ctx, types.NamespacedName{
-		Namespace: flowTest.Spec.ReferenceFlow.Namespace,
-		Name:      flowTest.Spec.ReferenceFlow.Name,
-	}, &referenceFlow); err != nil {
-		return err
-	}
 
 	i := 0
 
@@ -199,14 +202,16 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 
 		targetFlow.Spec.Match = append(targetFlow.Spec.Match, referenceFlow.Spec.Match[:x]...)
 
-		if err := r.Create(ctx, &targetFlow); err != nil {
-			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
-			return err
-		}
 		if err := r.Create(ctx, &targetOutput); err != nil {
 			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
 			return err
 		}
+
+		if err := r.Create(ctx, &targetFlow); err != nil {
+			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
+			return err
+		}
+
 		logger.V(1).Info("deployed match slice", "test-id", i)
 		i++
 	}
@@ -230,11 +235,12 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 
 		targetFlow.Spec.Filters = referenceFlow.Spec.Filters[:x]
 
-		if err := r.Create(ctx, &targetFlow); err != nil {
+		if err := r.Create(ctx, &targetOutput); err != nil {
 			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
 			return err
 		}
-		if err := r.Create(ctx, &targetOutput); err != nil {
+
+		if err := r.Create(ctx, &targetFlow); err != nil {
 			logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
 			return err
 		}

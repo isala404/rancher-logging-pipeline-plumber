@@ -36,16 +36,13 @@ type FlowTestReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows;clusterflows;outputs;clusteroutputs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows/status;clusterflows/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=output,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows;clusterflows;outputs;clusteroutputs,verbs=get;list;create;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
 // the FlowTest object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
@@ -73,6 +70,8 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if flowTest.Status.Status == "" {
 		flowTest.Status.Status = loggingplumberv1alpha1.Created
+		//flowTest.Status.FailedFilters = []flowv1beta1.Filter{}
+		//flowTest.Status.FailedMatches = []flowv1beta1.Match{}
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to update flowtest status")
 			return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
@@ -137,18 +136,16 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 			return err
 		}
 		if passing {
-			active := false
-			flow.Status.Active = &active
 			logger.V(1).Info(fmt.Sprintf("flow %s is passing", flow.ObjectMeta.Name))
 			if err := r.Delete(ctx, &flow); err != nil {
 				logger.Error(err, "failed to delete flow status")
 				return err
 			}
 			for _, match := range flow.Spec.Match {
-				flowTest.Status.PassedMatches = appendMatchIfMissing(flowTest.Status.PassedMatches, &match)
+				flowTest.Status.FailedMatches = removeMatchIfExists(flowTest.Status.FailedMatches, match)
 			}
 			for _, filter := range flow.Spec.Filters {
-				flowTest.Status.PassedFilters = appendFilterIfMissing(flowTest.Status.PassedFilters, &filter)
+				flowTest.Status.FailedFilters = removeFilterIfExists(flowTest.Status.FailedFilters, filter)
 			}
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to update flow status")
@@ -160,20 +157,24 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 	return nil
 }
 
-func appendMatchIfMissing(matches []*flowv1beta1.Match, match *flowv1beta1.Match) []*flowv1beta1.Match {
-	for _, ele := range matches {
-		if reflect.DeepEqual(&ele, &match) {
-			return matches
+func removeMatchIfExists(matches []flowv1beta1.Match, match flowv1beta1.Match) []flowv1beta1.Match {
+	var failing []flowv1beta1.Match
+	for _, element := range matches {
+		if reflect.DeepEqual(match, element) {
+			continue
 		}
+		failing = append(failing, element)
 	}
-	return append(matches, match)
+	return failing
 }
 
-func appendFilterIfMissing(filters []*flowv1beta1.Filter, filter *flowv1beta1.Filter) []*flowv1beta1.Filter {
-	for _, ele := range filters {
-		if reflect.DeepEqual(&ele, &filter) {
-			return filters
+func removeFilterIfExists(filters []flowv1beta1.Filter, filter flowv1beta1.Filter) []flowv1beta1.Filter {
+	var failing []flowv1beta1.Filter
+	for _, element := range filters {
+		if reflect.DeepEqual(filter, element) {
+			continue
 		}
+		failing = append(failing, element)
 	}
-	return append(filters, filter)
+	return failing
 }
