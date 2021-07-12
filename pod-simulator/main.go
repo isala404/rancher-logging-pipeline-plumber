@@ -19,7 +19,7 @@ func main() {
 	// os.Open() opens specific file in
 	// read-only mode and this return
 	// a pointer of type os.
-	file, err := os.Open("./simulation.log")
+	file, err := os.Open("/var/logs/simulation.log")
 
 	if err != nil {
 		panic("failed to open simulation.log")

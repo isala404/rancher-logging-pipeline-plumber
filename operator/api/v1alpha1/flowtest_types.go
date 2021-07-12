@@ -32,16 +32,20 @@ type FlowTestSpec struct {
 
 // FlowTestStatus defines the observed state of FlowTest
 type FlowTestStatus struct {
-	FailedMatch  flowv1beta1.Match  `json:"failedMatch"`
-	FailedFilter flowv1beta1.Filter `json:"failedFilter"`
-	// +kubebuilder:validation:Enum=Created;Running;Completed
+	// +nullable
+	FailedMatches []flowv1beta1.Match `json:"failedMatches"`
+	// +nullable
+	FailedFilters []flowv1beta1.Filter `json:"failedFilters"`
+	// +kubebuilder:default:="Created"
+	// +kubebuilder:validation:Enum=Created;Running;Completed;Error
 	Status FlowStatus `json:"status"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-// +kubebuilder:printcolumn:JSONPath=".status.simulationPod.name",name="SimulationPod",type="string"
-// +kubebuilder:printcolumn:JSONPath=".status.simulationFlow.name",name="SimulationFlow",type="string"
+// +kubebuilder:printcolumn:JSONPath=".spec.referencePod.name",name="Reference Pod",type="string"
+// +kubebuilder:printcolumn:JSONPath=".spec.referenceFlow.name",name="Reference Flow",type="string"
+// +kubebuilder:printcolumn:JSONPath=".status.status",name="Status",type="string"
 
 // FlowTest is the Schema for the flowtests API
 type FlowTest struct {

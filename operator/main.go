@@ -32,6 +32,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	loggingoperatorv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	"github.com/mrsupiri/rancher-logging-explorer/controllers"
 	//+kubebuilder:scaffold:imports
@@ -44,6 +46,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(loggingoperatorv1beta1.AddToScheme(scheme))
 
 	utilruntime.Must(loggingplumberv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme

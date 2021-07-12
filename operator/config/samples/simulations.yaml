@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-echo
+  labels:
+    loggingplumber.isala.me/test: simulations
+spec:
+  containers:
+    - name: busybox
+      image: busybox
+      command: ["sh", "-c", "x=1; while [ $x -gt -1 ]; do echo \"{'count': '$(( x++ ))', 'date': '$(date)'}\" && sleep 5; done"]
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  name: busybox-echo
+  labels:
+    loggingplumber.isala.me/test: simulations
+spec:
+  localOutputRefs:
+    - busybox-echo
+  match:
+    - select:
+        labels:
+          loggingplumber.isala.me/test: invalid
+    - select:
+        labels:
+          loggingplumber.isala.me/test: simulations
+  filters:
+    - record_modifier:
+        records:
+          - foo: "bar"
+    - grep:
+        regexp:
+          - key: first
+            pattern: /^5\d\d$/
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Output
+metadata:
+  name: busybox-echo
+  labels:
+    loggingplumber.isala.me/test: simulations
+spec:
+  http:
+    endpoint: "http://logging-plumber-log-aggregator.default.svc/busybox-echo/"
+    buffer:
+      flush_interval: 10s
+      flush_mode: interval
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logging-plumber-log-aggregator
+  labels:
+    loggingplumber.isala.me/test: simulations
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: logging-plumber-log-aggregator
+    app.kubernetes.io/managed-by: rancher-logging-explorer
+    app.kubernetes.io/created-by: logging-plumber
+    loggingplumber.isala.me/component: log-aggregator

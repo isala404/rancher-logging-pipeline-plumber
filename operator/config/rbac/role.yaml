@@ -7,6 +7,18 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - logging.banzaicloud.io
+  resources:
+  - clusterflows
+  - clusteroutputs
+  - flows
+  - outputs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+- apiGroups:
   - loggingplumber.isala.me
   resources:
   - flowtests
