@@ -35,6 +35,8 @@ type FlowTestStatus struct {
 	// +nullable
 	FailedMatches []flowv1beta1.Match `json:"failedMatches"`
 	// +nullable
+	FailedClusterMatches []flowv1beta1.ClusterMatch `json:"failedClusterMatches"`
+	// +nullable
 	FailedFilters []flowv1beta1.Filter `json:"failedFilters"`
 	// +kubebuilder:default:="Created"
 	// +kubebuilder:validation:Enum=Created;Running;Completed;Error

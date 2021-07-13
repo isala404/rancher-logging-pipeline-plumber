@@ -84,6 +84,50 @@ spec:
           status:
             description: FlowTestStatus defines the observed state of FlowTest
             properties:
+              failedClusterMatches:
+                items:
+                  properties:
+                    exclude:
+                      properties:
+                        container_names:
+                          items:
+                            type: string
+                          type: array
+                        hosts:
+                          items:
+                            type: string
+                          type: array
+                        labels:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        namespaces:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    select:
+                      properties:
+                        container_names:
+                          items:
+                            type: string
+                          type: array
+                        hosts:
+                          items:
+                            type: string
+                          type: array
+                        labels:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        namespaces:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                  type: object
+                nullable: true
+                type: array
               failedFilters:
                 items:
                   description: Filter definition for FlowSpec
@@ -1198,6 +1242,7 @@ spec:
                 - Error
                 type: string
             required:
+            - failedClusterMatches
             - failedFilters
             - failedMatches
             - status

@@ -70,5 +70,33 @@ func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName 
 		logger.V(1).Info(fmt.Sprintf("%s deleted", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
 	}
 
+	var clusterFlows flowv1beta1.ClusterFlowList
+	if err := r.List(ctx, &clusterFlows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
+		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", clusterFlows.Kind))
+		//return err
+	}
+
+	for _, resource := range clusterFlows.Items {
+		if err := r.Delete(ctx, &resource); client.IgnoreNotFound(err) != nil {
+			logger.Error(err, fmt.Sprintf("failed to delete a provisioned %s", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
+			return err
+		}
+		logger.V(1).Info(fmt.Sprintf("%s deleted", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
+	}
+
+	var clusterOutputs flowv1beta1.ClusterOutputList
+	if err := r.List(ctx, &clusterOutputs, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
+		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", clusterOutputs.Kind))
+		//return err
+	}
+
+	for _, resource := range clusterOutputs.Items {
+		if err := r.Delete(ctx, &resource); client.IgnoreNotFound(err) != nil {
+			logger.Error(err, fmt.Sprintf("failed to delete a provisioned %s", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
+			return err
+		}
+		logger.V(1).Info(fmt.Sprintf("%s deleted", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
+	}
+
 	return nil
 }
