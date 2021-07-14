@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.Flow, flowv1beta1.Output) {
+func flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.Flow, flowv1beta1.Output) {
 	flowTemplate := flowv1beta1.Flow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -60,6 +60,63 @@ func banzaiTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.Flow
 				Buffer: &output.Buffer{
 					FlushMode:     "interval",
 					FlushInterval: "10s",
+				},
+			},
+		},
+	}
+
+	return flowTemplate, outTemplate
+}
+
+func clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.ClusterFlow, flowv1beta1.ClusterOutput) {
+	flowTemplate := flowv1beta1.ClusterFlow{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "logging.banzaicloud.io/v1beta1",
+			Kind:       "ClusterFlow",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-test", flow.ObjectMeta.Name),
+			Namespace: flowTest.Spec.ReferenceFlow.Namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":                flow.ObjectMeta.Name,
+				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
+				"app.kubernetes.io/created-by":          "logging-plumber",
+				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
+				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
+			},
+		},
+		Spec: flowv1beta1.ClusterFlowSpec{
+			GlobalOutputRefs: nil,
+			Match: []flowv1beta1.ClusterMatch{{
+				ClusterSelect: &flowv1beta1.ClusterSelect{Labels: extraLabels},
+			}},
+		},
+	}
+
+	outTemplate := flowv1beta1.ClusterOutput{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "logging.banzaicloud.io/v1beta1",
+			Kind:       "ClusterOutput",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-test", flow.ObjectMeta.Name),
+			Namespace: flowTest.Spec.ReferenceFlow.Namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":                flow.ObjectMeta.Name,
+				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
+				"app.kubernetes.io/created-by":          "logging-plumber",
+				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
+				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
+			},
+		},
+		Spec: flowv1beta1.ClusterOutputSpec{
+			OutputSpec: flowv1beta1.OutputSpec{
+				HTTPOutput: &output.HTTPOutputConfig{
+					Endpoint: "http://logging-plumber-log-aggregator.default.svc",
+					Buffer: &output.Buffer{
+						FlushMode:     "interval",
+						FlushInterval: "10s",
+					},
 				},
 			},
 		},

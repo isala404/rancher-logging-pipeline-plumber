@@ -116,6 +116,13 @@ func (in *FlowTestStatus) DeepCopyInto(out *FlowTestStatus) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.FailedClusterMatches != nil {
+		in, out := &in.FailedClusterMatches, &out.FailedClusterMatches
+		*out = make([]v1beta1.ClusterMatch, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.FailedFilters != nil {
 		in, out := &in.FailedFilters, &out.FailedFilters
 		*out = make([]v1beta1.Filter, len(*in))

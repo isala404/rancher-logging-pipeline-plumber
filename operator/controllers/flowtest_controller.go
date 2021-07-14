@@ -124,32 +124,64 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 	logger := log.FromContext(ctx)
 	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
 
-	var flows flowv1beta1.FlowList
-	if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
-		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flows.Kind))
-		return err
-	}
-
-	for _, flow := range flows.Items {
-		passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
-		if err != nil {
+	if flowTest.Spec.ReferenceFlow.Kind == "ClusterFlow" {
+		var flows flowv1beta1.ClusterFlowList
+		if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
+			logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flows.Kind))
 			return err
 		}
-		if passing {
-			logger.V(1).Info(fmt.Sprintf("flow %s is passing", flow.ObjectMeta.Name))
-			if err := r.Delete(ctx, &flow); err != nil {
-				logger.Error(err, "failed to delete flow status")
+
+		for _, flow := range flows.Items {
+			passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
+			if err != nil {
 				return err
 			}
-			for _, match := range flow.Spec.Match {
-				flowTest.Status.FailedMatches = removeMatchIfExists(flowTest.Status.FailedMatches, match)
+			if passing {
+				logger.V(1).Info(fmt.Sprintf("flow %s is passing", flow.ObjectMeta.Name))
+				if err := r.Delete(ctx, &flow); err != nil {
+					logger.Error(err, "failed to delete flow status")
+					return err
+				}
+				for _, match := range flow.Spec.Match {
+					flowTest.Status.FailedClusterMatches = removeClusterMatchIfExists(flowTest.Status.FailedClusterMatches, match)
+				}
+				for _, filter := range flow.Spec.Filters {
+					flowTest.Status.FailedFilters = removeFilterIfExists(flowTest.Status.FailedFilters, filter)
+				}
+				if err := r.Status().Update(ctx, &flowTest); err != nil {
+					logger.Error(err, "failed to update flow status")
+					return err
+				}
 			}
-			for _, filter := range flow.Spec.Filters {
-				flowTest.Status.FailedFilters = removeFilterIfExists(flowTest.Status.FailedFilters, filter)
-			}
-			if err := r.Status().Update(ctx, &flowTest); err != nil {
-				logger.Error(err, "failed to update flow status")
+		}
+	} else {
+		var flows flowv1beta1.FlowList
+		if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
+			logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flows.Kind))
+			return err
+		}
+
+		for _, flow := range flows.Items {
+			passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
+			if err != nil {
 				return err
+			}
+			if passing {
+				logger.V(1).Info(fmt.Sprintf("flow %s is passing", flow.ObjectMeta.Name))
+				if err := r.Delete(ctx, &flow); err != nil {
+					logger.Error(err, "failed to delete flow status")
+					return err
+				}
+				for _, match := range flow.Spec.Match {
+					flowTest.Status.FailedMatches = removeMatchIfExists(flowTest.Status.FailedMatches, match)
+				}
+				for _, filter := range flow.Spec.Filters {
+					flowTest.Status.FailedFilters = removeFilterIfExists(flowTest.Status.FailedFilters, filter)
+				}
+				if err := r.Status().Update(ctx, &flowTest); err != nil {
+					logger.Error(err, "failed to update flow status")
+					return err
+				}
 			}
 		}
 	}
@@ -159,6 +191,17 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 
 func removeMatchIfExists(matches []flowv1beta1.Match, match flowv1beta1.Match) []flowv1beta1.Match {
 	var failing []flowv1beta1.Match
+	for _, element := range matches {
+		if reflect.DeepEqual(match, element) {
+			continue
+		}
+		failing = append(failing, element)
+	}
+	return failing
+}
+
+func removeClusterMatchIfExists(matches []flowv1beta1.ClusterMatch, match flowv1beta1.ClusterMatch) []flowv1beta1.ClusterMatch {
+	var failing []flowv1beta1.ClusterMatch
 	for _, element := range matches {
 		if reflect.DeepEqual(match, element) {
 			continue
