@@ -3,8 +3,12 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/mrsupiri/rancher-logging-explorer/internal/server/manifests"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"strings"
 )
 
 func (ws *WebServer) WriteResponse(w http.ResponseWriter, httpRes HTTPResponse) {
@@ -16,6 +20,17 @@ func (ws *WebServer) WriteResponse(w http.ResponseWriter, httpRes HTTPResponse) 
 	if err != nil {
 		ws.logger.Error(err, "failed to write to ResponseWriter")
 	}
+}
+
+func (ws *WebServer) ProxyToKubeAPI(res http.ResponseWriter, req *http.Request) {
+	targetUrl, _ := url.Parse("http://localhost:8231")
+	// create the reverse proxy
+	proxy := httputil.NewSingleHostReverseProxy(targetUrl)
+
+	req.URL.Path = "/" + strings.Join(strings.Split(req.URL.Path, "/")[2:], "/")
+
+	ws.logger.V(1).Info(fmt.Sprintf("proxying %s to %s", req.URL, targetUrl))
+	proxy.ServeHTTP(res, req)
 }
 
 func (ws *WebServer) DeployLogOutput(w http.ResponseWriter, _ *http.Request) {

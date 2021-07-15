@@ -42,6 +42,7 @@ func (ws *WebServer) ListenAndServe(stopCh <-chan struct{}) {
 
 	r.HandleFunc("/log-output/deploy", ws.DeployLogOutput).Methods("POST")
 	r.HandleFunc("/log-output/destroy", ws.DestroyLogOutput).Methods("POST")
+	r.PathPrefix("/k8s").HandlerFunc(ws.ProxyToKubeAPI)
 	r.PathPrefix("/").Handler(clientHandler())
 
 	go func() {
