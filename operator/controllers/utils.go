@@ -22,13 +22,7 @@ func flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTe
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-test", flow.ObjectMeta.Name),
 			Namespace: flow.Namespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":                flow.ObjectMeta.Name,
-				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
-				"app.kubernetes.io/created-by":          "logging-plumber",
-				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
-				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
-			},
+			Labels:    GetLabels(flow.ObjectMeta.Name, &flowTest),
 		},
 		Spec: flowv1beta1.FlowSpec{
 			LocalOutputRefs: nil,
@@ -46,13 +40,7 @@ func flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTe
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-test", flow.ObjectMeta.Name),
 			Namespace: flow.Namespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":                flow.ObjectMeta.Name,
-				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
-				"app.kubernetes.io/created-by":          "logging-plumber",
-				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
-				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
-			},
+			Labels:    GetLabels(flow.ObjectMeta.Name, &flowTest),
 		},
 		Spec: flowv1beta1.OutputSpec{
 			HTTPOutput: &output.HTTPOutputConfig{
@@ -77,13 +65,7 @@ func clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-test", flow.ObjectMeta.Name),
 			Namespace: flowTest.Spec.ReferenceFlow.Namespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":                flow.ObjectMeta.Name,
-				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
-				"app.kubernetes.io/created-by":          "logging-plumber",
-				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
-				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
-			},
+			Labels:    GetLabels(flow.ObjectMeta.Name, &flowTest),
 		},
 		Spec: flowv1beta1.ClusterFlowSpec{
 			GlobalOutputRefs: nil,
@@ -101,13 +83,7 @@ func clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-test", flow.ObjectMeta.Name),
 			Namespace: flowTest.Spec.ReferenceFlow.Namespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":                flow.ObjectMeta.Name,
-				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
-				"app.kubernetes.io/created-by":          "logging-plumber",
-				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
-				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
-			},
+			Labels:    GetLabels(flow.ObjectMeta.Name, &flowTest),
 		},
 		Spec: flowv1beta1.ClusterOutputSpec{
 			OutputSpec: flowv1beta1.OutputSpec{
@@ -181,4 +157,23 @@ func CheckIndex(ctx context.Context, indexName string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func GetLabels(name string, flowTest *loggingplumberv1alpha1.FlowTest, labelsMaps ...map[string]string) map[string]string {
+	labels := map[string]string{}
+
+	for _, labelsMap := range labelsMaps {
+		for k, v := range labelsMap {
+			labels[k] = v
+		}
+	}
+
+	labels["app.kubernetes.io/name"] = name
+	if flowTest != nil {
+		labels["loggingplumber.isala.me/flowtest-uuid"] = string(flowTest.ObjectMeta.UID)
+		labels["loggingplumber.isala.me/flowtest"] = flowTest.ObjectMeta.Name
+	}
+	labels["app.kubernetes.io/created-by"] = "logging-plumber"
+	labels["app.kubernetes.io/managed-by"] = "rancher-logging-explorer"
+	return labels
 }
