@@ -2,16 +2,23 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 )
 
 func main() {
-	echoDelay := 3 * time.Second
-	if delay, err := strconv.Atoi(os.Getenv("ECHO_DELAY")); err == nil {
-		echoDelay = time.Duration(delay) * time.Second
+	var logDir string
+	var echoDelay time.Duration
+	flag.DurationVar(&echoDelay, "delay", 3*time.Second, "interval between 2 log echos")
+	flag.StringVar(&logDir, "log-dir", "", "absolute path for the log file")
+	flag.Parse()
+
+	if len(logDir) == 0 {
+		fmt.Println("Usage: ./pod-simulator -log-dir")
+		flag.PrintDefaults()
+		os.Exit(1)
 	}
 
 	// Source - https://www.geeksforgeeks.org/how-to-read-a-file-line-by-line-to-string-in-golang/
@@ -19,11 +26,10 @@ func main() {
 	// os.Open() opens specific file in
 	// read-only mode and this return
 	// a pointer of type os.
-	file, err := os.Open("/var/logs/simulation.log")
+	file, err := os.Open(logDir)
 
 	if err != nil {
-		panic("failed to open simulation.log")
-
+		panic(fmt.Sprintf("failed to %s", logDir))
 	}
 
 	// The bufio.NewScanner() function is called in which the
