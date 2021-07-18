@@ -23,6 +23,7 @@ import (
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -70,8 +71,6 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if flowTest.Status.Status == "" {
 		flowTest.Status.Status = loggingplumberv1alpha1.Created
-		//flowTest.Status.FailedFilters = []flowv1beta1.Filter{}
-		//flowTest.Status.FailedMatches = []flowv1beta1.Match{}
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to update flowtest status")
 			return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
@@ -126,6 +125,15 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 
 	if flowTest.Spec.ReferenceFlow.Kind == "ClusterFlow" {
 		var flows flowv1beta1.ClusterFlowList
+
+		var referenceFlow flowv1beta1.ClusterFlow
+		if err := r.Get(ctx, types.NamespacedName{
+			Namespace: flowTest.Spec.ReferenceFlow.Namespace,
+			Name:      flowTest.Spec.ReferenceFlow.Name,
+		}, &referenceFlow); err != nil {
+			return err
+		}
+
 		if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
 			logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flows.Kind))
 			return err
@@ -142,18 +150,11 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 					logger.Error(err, "failed to delete flow status")
 					return err
 				}
-				for _, match := range flow.Spec.Match {
-					flowTest.Status.FailedClusterMatches = removeClusterMatchIfExists(flowTest.Status.FailedClusterMatches, match)
-				}
-				for _, filter := range flow.Spec.Filters {
-					flowTest.Status.FailedFilters = removeFilterIfExists(flowTest.Status.FailedFilters, filter)
-				}
-				if err := r.Status().Update(ctx, &flowTest); err != nil {
-					logger.Error(err, "failed to update flow status")
-					return err
-				}
+				setPassingFilter(flow.Spec.Filters, referenceFlow.Spec.Filters, &flowTest)
+				setPassingClusterMatches(flow.Spec.Match, referenceFlow.Spec.Match, &flowTest)
 			}
 		}
+
 	} else {
 		var flows flowv1beta1.FlowList
 		if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
@@ -162,6 +163,14 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 		}
 
 		for _, flow := range flows.Items {
+			var referenceFlow flowv1beta1.Flow
+			if err := r.Get(ctx, types.NamespacedName{
+				Namespace: flowTest.Spec.ReferenceFlow.Namespace,
+				Name:      flowTest.Spec.ReferenceFlow.Name,
+			}, &referenceFlow); err != nil {
+				return err
+			}
+
 			passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
 			if err != nil {
 				return err
@@ -172,52 +181,41 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 					logger.Error(err, "failed to delete flow status")
 					return err
 				}
-				for _, match := range flow.Spec.Match {
-					flowTest.Status.FailedMatches = removeMatchIfExists(flowTest.Status.FailedMatches, match)
-				}
-				for _, filter := range flow.Spec.Filters {
-					flowTest.Status.FailedFilters = removeFilterIfExists(flowTest.Status.FailedFilters, filter)
-				}
-				if err := r.Status().Update(ctx, &flowTest); err != nil {
-					logger.Error(err, "failed to update flow status")
-					return err
-				}
+
+				setPassingFilter(flow.Spec.Filters, referenceFlow.Spec.Filters, &flowTest)
+				setPassingMatches(flow.Spec.Match, referenceFlow.Spec.Match, &flowTest)
 			}
 		}
 	}
-
-	return nil
+	return r.Status().Update(ctx, &flowTest)
 }
 
-func removeMatchIfExists(matches []flowv1beta1.Match, match flowv1beta1.Match) []flowv1beta1.Match {
-	var failing []flowv1beta1.Match
-	for _, element := range matches {
-		if reflect.DeepEqual(match, element) {
-			continue
+func setPassingFilter(passingFilters []flowv1beta1.Filter, filters []flowv1beta1.Filter, flowTest *loggingplumberv1alpha1.FlowTest) {
+	for _, passingFilter := range passingFilters {
+		for i, filter := range filters {
+			if reflect.DeepEqual(passingFilter, filter) {
+				flowTest.Status.FilterStatus[i] = true
+			}
 		}
-		failing = append(failing, element)
 	}
-	return failing
 }
 
-func removeClusterMatchIfExists(matches []flowv1beta1.ClusterMatch, match flowv1beta1.ClusterMatch) []flowv1beta1.ClusterMatch {
-	var failing []flowv1beta1.ClusterMatch
-	for _, element := range matches {
-		if reflect.DeepEqual(match, element) {
-			continue
+func setPassingMatches(passingMatches []flowv1beta1.Match, matches []flowv1beta1.Match, flowTest *loggingplumberv1alpha1.FlowTest) {
+	for _, passingFilter := range passingMatches {
+		for i, filter := range matches {
+			if reflect.DeepEqual(passingFilter, filter) {
+				flowTest.Status.MatchStatus[i] = true
+			}
 		}
-		failing = append(failing, element)
 	}
-	return failing
 }
 
-func removeFilterIfExists(filters []flowv1beta1.Filter, filter flowv1beta1.Filter) []flowv1beta1.Filter {
-	var failing []flowv1beta1.Filter
-	for _, element := range filters {
-		if reflect.DeepEqual(filter, element) {
-			continue
+func setPassingClusterMatches(passingMatches []flowv1beta1.ClusterMatch, matches []flowv1beta1.ClusterMatch, flowTest *loggingplumberv1alpha1.FlowTest) {
+	for _, passingFilter := range passingMatches {
+		for i, filter := range matches {
+			if reflect.DeepEqual(passingFilter, filter) {
+				flowTest.Status.MatchStatus[i] = true
+			}
 		}
-		failing = append(failing, element)
 	}
-	return failing
 }

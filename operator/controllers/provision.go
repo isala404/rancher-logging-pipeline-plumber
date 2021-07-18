@@ -152,17 +152,13 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		logger.V(1).Info("found a already deployed log output pod", "pod-uuid", outputPod.UID)
 	}
 
-	matches, clusterMatches, filters, err := r.deploySlicedFlows(ctx, extraLabels)
+	err := r.deploySlicedFlows(ctx, extraLabels, &flowTest)
 
 	if err != nil {
 		return err
 	}
 
 	flowTest.Status.Status = loggingplumberv1alpha1.Running
-
-	flowTest.Status.FailedFilters = filters
-	flowTest.Status.FailedMatches = matches
-	flowTest.Status.FailedClusterMatches = clusterMatches
 
 	if err := r.Status().Update(ctx, &flowTest); err != nil {
 		logger.Error(err, "failed to update flowtest status")
@@ -172,9 +168,8 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 	return nil
 }
 
-func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels map[string]string) (matches []flowv1beta1.Match, clusterMatches []flowv1beta1.ClusterMatch, filters []flowv1beta1.Filter, err error) {
+func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels map[string]string, flowTest *loggingplumberv1alpha1.FlowTest) (err error) {
 	logger := log.FromContext(ctx)
-	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
 
 	// TODO: handle this sane way
 	if flowTest.Spec.ReferenceFlow.Kind == "ClusterFlow" {
@@ -186,12 +181,11 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 			return
 		}
 
-		clusterMatches = referenceFlow.Spec.Match
-		filters = referenceFlow.Spec.Filters
+		flowTest.Status.MatchStatus = make([]bool, len(referenceFlow.Spec.Match))
+		flowTest.Status.FilterStatus = make([]bool, len(referenceFlow.Spec.Filters))
 
 		i := 0
-		flowTemplate, outTemplate := clusterFlowTemplates(referenceFlow, flowTest, extraLabels)
-
+		flowTemplate, outTemplate := clusterFlowTemplates(referenceFlow, *flowTest, extraLabels)
 		for x := 1; x <= len(referenceFlow.Spec.Match); x++ {
 			targetFlow := *flowTemplate.DeepCopy()
 			targetOutput := *outTemplate.DeepCopy()
@@ -264,11 +258,11 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 			return
 		}
 
-		matches = referenceFlow.Spec.Match
-		filters = referenceFlow.Spec.Filters
+		flowTest.Status.MatchStatus = make([]bool, len(referenceFlow.Spec.Match))
+		flowTest.Status.FilterStatus = make([]bool, len(referenceFlow.Spec.Filters))
 
 		i := 0
-		flowTemplate, outTemplate := flowTemplates(referenceFlow, flowTest, extraLabels)
+		flowTemplate, outTemplate := flowTemplates(referenceFlow, *flowTest, extraLabels)
 
 		for x := 1; x <= len(referenceFlow.Spec.Match); x++ {
 			targetFlow := *flowTemplate.DeepCopy()
