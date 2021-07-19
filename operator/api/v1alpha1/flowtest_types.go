@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -33,11 +32,9 @@ type FlowTestSpec struct {
 // FlowTestStatus defines the observed state of FlowTest
 type FlowTestStatus struct {
 	// +nullable
-	FailedMatches []flowv1beta1.Match `json:"failedMatches"`
+	MatchStatus []bool `json:"matchStatus"`
 	// +nullable
-	FailedClusterMatches []flowv1beta1.ClusterMatch `json:"failedClusterMatches"`
-	// +nullable
-	FailedFilters []flowv1beta1.Filter `json:"failedFilters"`
+	FilterStatus []bool `json:"filterStatus"`
 	// +kubebuilder:default:="Created"
 	// +kubebuilder:validation:Enum=Created;Running;Completed;Error
 	Status FlowStatus `json:"status"`
