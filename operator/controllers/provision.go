@@ -30,15 +30,9 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 			Kind:       "ConfigMap",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-configmap", flowTest.Spec.ReferencePod.Name),
+			Name:      fmt.Sprintf("%s-configmap", flowTest.ObjectMeta.UID),
 			Namespace: flowTest.Spec.ReferencePod.Namespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":                "pod-simulation",
-				"app.kubernetes.io/managed-by":          "rancher-logging-explorer",
-				"app.kubernetes.io/created-by":          "logging-plumber",
-				"loggingplumber.isala.me/flowtest-uuid": string(flowTest.ObjectMeta.UID),
-				"loggingplumber.isala.me/flowtest":      flowTest.ObjectMeta.Name,
-			},
+			Labels:    GetLabels("pod-simulation", &flowTest),
 		},
 		Immutable:  &Immutable,
 		BinaryData: map[string][]byte{"simulation.log": logOutput.Bytes()},
@@ -51,7 +45,6 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 
 	logger.V(1).Info("deployed config map with simulation.log", "uuid", configMap.ObjectMeta.UID)
 
-	// TODO: set the name based on flowtest uuid
 	var referencePod v1.Pod
 	if err := r.Get(ctx, types.NamespacedName{
 		Namespace: flowTest.Spec.ReferencePod.Namespace,
@@ -82,7 +75,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 					Name: "config-volume",
 					VolumeSource: v1.VolumeSource{
 						ConfigMap: &v1.ConfigMapVolumeSource{
-							LocalObjectReference: v1.LocalObjectReference{Name: fmt.Sprintf("%s-configmap", flowTest.Spec.ReferencePod.Name)},
+							LocalObjectReference: v1.LocalObjectReference{Name: fmt.Sprintf("%s-configmap", flowTest.ObjectMeta.UID)},
 						},
 					},
 				},
@@ -91,13 +84,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		},
 	}
 
-	extraLabels := map[string]string{}
-
-	extraLabels["app.kubernetes.io/name"] = "pod-simulation"
-	extraLabels["app.kubernetes.io/managed-by"] = "rancher-logging-explorer"
-	extraLabels["app.kubernetes.io/created-by"] = "logging-plumber"
-	extraLabels["loggingplumber.isala.me/flowtest-uuid"] = string(flowTest.ObjectMeta.UID)
-	extraLabels["loggingplumber.isala.me/flowtest"] = flowTest.ObjectMeta.Name
+	extraLabels := GetLabels("pod-simulation", &flowTest)
 
 	simulationPod.ObjectMeta.Labels = referencePod.ObjectMeta.Labels
 
@@ -123,12 +110,8 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "logging-plumber-log-aggregator",
 					Namespace: flowTest.ObjectMeta.Namespace,
-					Labels: map[string]string{
-						"app.kubernetes.io/name":            "logging-plumber-log-aggregator",
-						"app.kubernetes.io/managed-by":      "rancher-logging-explorer",
-						"app.kubernetes.io/created-by":      "logging-plumber",
-						"loggingplumber.isala.me/component": "log-aggregator",
-					},
+					Labels: GetLabels("logging-plumber-log-aggregator", nil,
+						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
 				},
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{{
