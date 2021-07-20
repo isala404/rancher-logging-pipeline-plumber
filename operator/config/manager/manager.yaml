@@ -25,9 +25,6 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
-        - args: ["proxy", "--port=8231"]
-          image: bitnami/kubectl:latest
-          name: kubectl-proxy
         - command:
             - /manager
           args:

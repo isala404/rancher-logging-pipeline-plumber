@@ -23,11 +23,12 @@ func (ws *WebServer) WriteResponse(w http.ResponseWriter, httpRes HTTPResponse) 
 }
 
 func (ws *WebServer) ProxyToKubeAPI(res http.ResponseWriter, req *http.Request) {
-	targetUrl, _ := url.Parse("http://localhost:8231")
-	// create the reverse proxy
-	proxy := httputil.NewSingleHostReverseProxy(targetUrl)
+	targetUrl, _ := url.Parse(ws.kubeProxy.endpoint)
 
+	proxy := httputil.NewSingleHostReverseProxy(targetUrl)
+	proxy.Transport = ws.kubeProxy.proxyTransport
 	req.URL.Path = "/" + strings.Join(strings.Split(req.URL.Path, "/")[2:], "/")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", ws.kubeProxy.token))
 
 	ws.logger.V(1).Info(fmt.Sprintf("proxying %s to %s", req.URL, targetUrl))
 	proxy.ServeHTTP(res, req)
