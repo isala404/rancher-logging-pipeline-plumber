@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -101,40 +101,8 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 
 	logger.V(1).Info("deployed simulation pod", "pod-uuid", simulationPod.UID)
 
-	var outputPod v1.Pod
-	if err := r.Get(ctx, client.ObjectKey{Name: "logging-plumber-log-aggregator", Namespace: flowTest.ObjectMeta.Namespace}, &outputPod); err != nil {
-		if apierrors.IsNotFound(err) {
-			outputPod := v1.Pod{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "V1",
-					Kind:       "Pod",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "logging-plumber-log-aggregator",
-					Namespace: flowTest.ObjectMeta.Namespace,
-					Labels: GetLabels("logging-plumber-log-aggregator", nil,
-						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
-				},
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{{
-						Name:  "log-output",
-						Image: "paynejacob/log-output:latest",
-						Ports: []v1.ContainerPort{{
-							Name:          "http",
-							ContainerPort: 80,
-							Protocol:      "TCP",
-						}},
-					}},
-				},
-			}
-			if err := r.Create(ctx, &outputPod); err != nil {
-				logger.Error(err, "failed to create the log output pod")
-				return err
-			}
-			logger.V(1).Info("deployed log output pod", "pod-uuid", outputPod.UID)
-		}
-	} else {
-		logger.V(1).Info("found a already deployed log output pod", "pod-uuid", outputPod.UID)
+	if err := r.provisionOutputResource(ctx); err != nil {
+		return err
 	}
 
 	err := r.deploySlicedFlows(ctx, extraLabels, &flowTest)
@@ -314,4 +282,79 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 	}
 
 	return
+}
+
+func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error {
+	logger := log.FromContext(ctx)
+	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+
+	var outputPod v1.Pod
+	if err := r.Get(ctx, client.ObjectKey{Name: "logging-plumber-log-aggregator", Namespace: flowTest.ObjectMeta.Namespace}, &outputPod); err != nil {
+		if apierrors.IsNotFound(err) {
+			outputPod := v1.Pod{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "V1",
+					Kind:       "Pod",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "logging-plumber-log-aggregator",
+					Namespace: flowTest.ObjectMeta.Namespace,
+					Labels: GetLabels("logging-plumber-log-aggregator", nil,
+						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
+				},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{{
+						Name:  "log-output",
+						Image: "paynejacob/log-output:latest",
+						Ports: []v1.ContainerPort{{
+							Name:          "http",
+							ContainerPort: 80,
+							Protocol:      "TCP",
+						}},
+					}},
+				},
+			}
+			if err := r.Create(ctx, &outputPod); err != nil {
+				logger.Error(err, "failed to create the log output pod")
+				return err
+			}
+			logger.V(1).Info("deployed log output pod", "pod-uuid", outputPod.UID)
+
+			simulationPodSVC := v1.Service{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "V1",
+					Kind:       "Service",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "logging-plumber-log-aggregator",
+					Namespace: flowTest.Spec.ReferencePod.Namespace,
+					Labels: GetLabels("logging-plumber-log-aggregator", nil,
+						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
+				},
+				Spec: v1.ServiceSpec{
+					Ports: []v1.ServicePort{{
+						Name:       "http",
+						Protocol:   "TCP",
+						Port:       80,
+						TargetPort: intstr.IntOrString{Type: intstr.String, StrVal: "http"},
+					}},
+					Selector: outputPod.Labels,
+				},
+			}
+
+			if err := r.Create(ctx, &simulationPodSVC); err != nil {
+				if apierrors.IsAlreadyExists(err) {
+					logger.V(1).Info("found a already deployed log output service")
+				}
+				logger.Error(err, "failed to create the output pod service")
+				return err
+			}
+
+			logger.V(1).Info("deployed output pod service", "service-uuid", simulationPodSVC.UID)
+		}
+	} else {
+		logger.V(1).Info("found a already deployed log output pod", "pod-uuid", outputPod.UID)
+	}
+
+	return nil
 }

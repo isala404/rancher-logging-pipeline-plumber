@@ -88,6 +88,9 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
 			return ctrl.Result{}, r.setErrorStatus(ctx, err)
 		}
+		if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
+			return ctrl.Result{}, r.setErrorStatus(ctx, err)
+		}
 		return ctrl.Result{Requeue: false}, nil
 	}
 
@@ -100,7 +103,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				logger.Error(err, "failed to update flowtest status")
 				return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
 			}
-			return ctrl.Result{}, nil
+			return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 		} else {
 			logger.V(1).Info("checking log indexes")
 			if err := r.checkForPassingFlowTest(ctx); err != nil {
