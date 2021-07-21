@@ -95,7 +95,7 @@ func main() {
 	//+kubebuilder:scaffold:builder
 	setupLog.Info("starting web server", "addr", webAddr)
 	ctx := ctrl.SetupSignalHandler()
-	webServer := server.NewWebServer(webAddr, mgr.GetClient())
+	webServer := server.NewWebServer(webAddr)
 	go webServer.ListenAndServe(ctx.Done())
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

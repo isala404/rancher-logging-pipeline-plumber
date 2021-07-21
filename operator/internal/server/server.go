@@ -3,21 +3,17 @@ package server
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"embed"
 	"github.com/go-logr/logr"
 	"github.com/gorilla/mux"
-	"io/fs"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type WebServer struct {
-	kubeClient client.Client
 	port       string
 	logger     logr.Logger
 	kubeProxy  KubeProxy
@@ -34,7 +30,7 @@ const (
 )
 
 // NewWebServer returns an HTTP server that handles webhooks
-func NewWebServer(port string, kubeClient client.Client) *WebServer {
+func NewWebServer(port string) *WebServer {
 	logger := ctrl.Log.WithName("web-server")
 
 	// Setup proxy data
@@ -63,7 +59,6 @@ func NewWebServer(port string, kubeClient client.Client) *WebServer {
 	}
 
 	return &WebServer{
-		kubeClient: kubeClient,
 		port:       port,
 		logger:     logger,
 		kubeProxy: KubeProxy{
@@ -76,20 +71,8 @@ func NewWebServer(port string, kubeClient client.Client) *WebServer {
 	}
 }
 
-//go:embed build
-var content embed.FS
-
-func clientHandler() http.Handler {
-	fsys := fs.FS(content)
-	contentStatic, _ := fs.Sub(fsys, "build")
-	return http.FileServer(http.FS(contentStatic))
-}
-
 func (ws *WebServer) ListenAndServe(stopCh <-chan struct{}) {
 	r := mux.NewRouter()
-
-	r.HandleFunc("/log-output/deploy", ws.DeployLogOutput).Methods("POST")
-	r.HandleFunc("/log-output/destroy", ws.DestroyLogOutput).Methods("POST")
 	r.PathPrefix("/k8s").HandlerFunc(ws.ProxyToKubeAPI)
 	r.PathPrefix("/").Handler(clientHandler())
 
