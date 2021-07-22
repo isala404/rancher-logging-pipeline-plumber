@@ -37,10 +37,11 @@ type FlowTestReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows;clusterflows;outputs;clusteroutputs,verbs=get;list;create;delete
+//+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows;clusterflows;outputs;clusteroutputs,verbs=get;watch;list;create;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=pods;services;configmaps,verbs=get;watch;list;create;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
