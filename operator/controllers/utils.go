@@ -9,6 +9,7 @@ import (
 	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 )
@@ -123,14 +124,21 @@ type Index struct {
 	LogCount int       `json:"log_count"`
 }
 
+// https://stackoverflow.com/a/40326580
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
 func CheckIndex(ctx context.Context, indexName string) (bool, error) {
 	logger := log.FromContext(ctx)
 
 	client := &http.Client{}
 
-	// TODO: UPDATE THIS SVC NAME
 	// NOTE: When developing this requires port-forward because controller is running locally
-	req, err := http.NewRequest("GET", "http://localhost:8111/", nil)
+	req, err := http.NewRequest("GET", getEnv("LOG_OUTPUT_ENDPOINT", "http://logging-plumber-log-aggregator.default.svc/"), nil)
 	if err != nil {
 		logger.Error(err, "failed to create request for checking indexes")
 		return false, err

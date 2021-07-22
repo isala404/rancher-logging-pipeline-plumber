@@ -77,25 +77,6 @@ spec:
       flush_mode: interval
 ---
 apiVersion: v1
-kind: Service
-metadata:
-  name: logging-plumber-log-aggregator
-  labels:
-    loggingplumber.isala.me/test: simulations
-spec:
-  type: ClusterIP
-  ports:
-    - port: 80
-      targetPort: http
-      protocol: TCP
-      name: http
-  selector:
-    app.kubernetes.io/name: logging-plumber-log-aggregator
-    app.kubernetes.io/managed-by: rancher-logging-explorer
-    app.kubernetes.io/created-by: logging-plumber
-    loggingplumber.isala.me/component: log-aggregator
----
-apiVersion: v1
 kind: Pod
 metadata:
   name: busybox-echo

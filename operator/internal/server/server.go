@@ -14,9 +14,9 @@ import (
 )
 
 type WebServer struct {
-	port       string
-	logger     logr.Logger
-	kubeProxy  KubeProxy
+	port      string
+	logger    logr.Logger
+	kubeProxy KubeProxy
 }
 type KubeProxy struct {
 	endpoint       string
@@ -36,11 +36,11 @@ func NewWebServer(port string) *WebServer {
 	// Setup proxy data
 	token, err := ioutil.ReadFile(tokenFile)
 	if err != nil {
-		logger.V(3).Info("failed to read the token from kubernetes secrets")
+		logger.V(-2).Info("failed to read the token from kubernetes secrets")
 	}
 	CAData, err := ioutil.ReadFile(rootCAFile)
 	if err != nil {
-		logger.V(3).Info("failed to read the CA Data from kubernetes secrets")
+		logger.V(-2).Info("failed to read the CA Data from kubernetes secrets")
 	}
 
 	// Get the SystemCertPool, continue with an empty pool on error
@@ -51,16 +51,16 @@ func NewWebServer(port string) *WebServer {
 
 	// Append our cert to the system pool
 	if ok := rootCAs.AppendCertsFromPEM(CAData); !ok {
-		logger.V(3).Info("failed to append k8s custom CA, using system certs only")
+		logger.V(-2).Info("failed to append k8s custom CA, using system certs only")
 	}
 
 	if err != nil {
-		logger.V(3).Info("it seems like operator is not running in side cluster, kube-api proxy will not operate as intended")
+		logger.V(-1).Info("it seems like operator is not running in side cluster, kube-api proxy will not operate as intended")
 	}
 
 	return &WebServer{
-		port:       port,
-		logger:     logger,
+		port:   port,
+		logger: logger,
 		kubeProxy: KubeProxy{
 			endpoint: "https://" + net.JoinHostPort(os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT")),
 			token:    string(token),
