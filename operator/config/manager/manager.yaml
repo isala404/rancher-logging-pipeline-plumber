@@ -25,11 +25,7 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
-        - command:
-            - /manager
-          args:
-            - --leader-elect
-          image: controller:latest
+        - image: controller:latest
           name: manager
           securityContext:
             allowPrivilegeEscalation: false
