@@ -18,7 +18,8 @@ package main
 
 import (
 	"flag"
-	"github.com/mrsupiri/rancher-logging-explorer/internal/server"
+	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/pkg/sdk/api/v1alpha1"
+	"github.com/mrsupiri/rancher-logging-explorer/pkg/webserver"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -34,7 +35,6 @@ import (
 
 	loggingoperatorv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 
-	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/api/v1alpha1"
 	"github.com/mrsupiri/rancher-logging-explorer/controllers"
 	//+kubebuilder:scaffold:imports
 )
@@ -93,9 +93,9 @@ func main() {
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
-	setupLog.Info("starting web server", "addr", webAddr)
+	setupLog.Info("starting web webserver", "addr", webAddr)
 	ctx := ctrl.SetupSignalHandler()
-	webServer := server.NewWebServer(webAddr)
+	webServer := webserver.NewWebServer(webAddr)
 	go webServer.ListenAndServe(ctx.Done())
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

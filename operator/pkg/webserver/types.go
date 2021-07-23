@@ -1,4 +1,4 @@
-package server
+package webserver
 
 type HTTPError struct {
 	Error   string `json:"error"`
