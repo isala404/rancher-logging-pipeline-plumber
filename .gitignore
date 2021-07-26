@@ -2,4 +2,5 @@
 **/.idea/*
 .vscode/*
 kubeconfig.yaml
-operator/internal/server/build
+operator/pkg/webserver/build/*
+!operator/pkg/webserver/build/gitkeep

@@ -1,4 +1,4 @@
-package server
+package webserver
 
 import (
 	"crypto/tls"
@@ -29,9 +29,9 @@ const (
 	rootCAFile = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 )
 
-// NewWebServer returns an HTTP server that handles webhooks
+// NewWebServer returns an HTTP webserver that handles webhooks
 func NewWebServer(port string) *WebServer {
-	logger := ctrl.Log.WithName("web-server")
+	logger := ctrl.Log.WithName("web-webserver")
 
 	// Setup proxy data
 	token, err := ioutil.ReadFile(tokenFile)
@@ -78,7 +78,7 @@ func (ws *WebServer) ListenAndServe(stopCh <-chan struct{}) {
 
 	go func() {
 		if err := http.ListenAndServe(ws.port, r); err != http.ErrServerClosed {
-			log.Printf("Receiver server crashed: %s", err)
+			log.Printf("Receiver webserver crashed: %s", err)
 			os.Exit(1)
 		}
 	}()
