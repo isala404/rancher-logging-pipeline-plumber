@@ -68,10 +68,11 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{{
 				// TODO: Handle more than or less than 1 Container (#12)
-				Name:         referencePod.Spec.Containers[0].Name,
-				Image:        "k3d-logging-pipeline-plumber-registry:5000/logging-pipeline-plumber/pod-simulator:latest",
-				Args:         []string{"-log-dir", "/simulation.log"},
-				VolumeMounts: []v1.VolumeMount{{Name: "config-volume", MountPath: "/simulation.log", SubPath: "simulation.log"}},
+				Name:            referencePod.Spec.Containers[0].Name,
+				ImagePullPolicy: v1.PullIfNotPresent,
+				Image:           "mrsupiri/pod-simulator:latest",
+				Args:            []string{"-log-dir", "/simulation.log"},
+				VolumeMounts:    []v1.VolumeMount{{Name: "config-volume", MountPath: "/simulation.log", SubPath: "simulation.log"}},
 			}},
 			Volumes: []v1.Volume{
 				{
@@ -106,9 +107,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		return err
 	}
 
-	err := r.deploySlicedFlows(ctx, extraLabels, &flowTest)
-
-	if err != nil {
+	if err := r.deploySlicedFlows(ctx, extraLabels, &flowTest); err != nil {
 		return err
 	}
 
@@ -307,6 +306,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 					Containers: []v1.Container{{
 						Name:  "log-output",
 						Image: "paynejacob/log-output:latest",
+						ImagePullPolicy: v1.PullIfNotPresent,
 						Ports: []v1.ContainerPort{{
 							Name:          "http",
 							ContainerPort: 80,

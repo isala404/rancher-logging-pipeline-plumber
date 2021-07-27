@@ -97,20 +97,23 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Running {
+		oneMinuteAfterCreation := flowTest.CreationTimestamp.Add(1 * time.Minute)
+		fiveMinuteAfterCreation := flowTest.CreationTimestamp.Add(5 * time.Minute)
 		// Timeout
-		twoMinuteAfterCreation := flowTest.CreationTimestamp.Add(2 * time.Minute)
-		if time.Now().After(twoMinuteAfterCreation) {
+		if time.Now().After(fiveMinuteAfterCreation) {
 			flowTest.Status.Status = loggingplumberv1alpha1.Completed
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to update flowtest status")
 				return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
 			}
 			return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
-		} else {
+		} else if time.Now().After(oneMinuteAfterCreation) { // Give 1 minute to resource to provisioned
 			logger.V(1).Info("checking log indexes")
 			if err := r.checkForPassingFlowTest(ctx); err != nil {
 				return ctrl.Result{RequeueAfter: 30 * time.Second}, err
 			}
+		} else {
+			return ctrl.Result{RequeueAfter: oneMinuteAfterCreation.Sub(time.Now())}, nil
 		}
 	}
 

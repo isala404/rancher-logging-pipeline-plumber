@@ -74,7 +74,7 @@ docker-push: ## Push docker image with the manager.
 	docker push ${IMG}:latest
 
 helm-build: manifests ## Build helm chart with the manager.
-	cp -r config/crd/bases/ ../charts/logging-pipeline-plumber/crds/
+	cp config/crd/bases/* ../charts/logging-pipeline-plumber/crds/
 	$(KUSTOMIZE) build config/rbac > ../charts/logging-pipeline-plumber/templates/role.yaml
 	sed -i 's/controller-manager/{{ include "logging-pipeline-plumber.serviceAccountName" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
 	sed -i 's/manager-rolebinding/{{ include "logging-pipeline-plumber.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
