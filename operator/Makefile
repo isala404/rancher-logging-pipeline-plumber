@@ -79,7 +79,7 @@ helm-build: manifests ## Build helm chart with the manager.
 	sed -i 's/controller-manager/{{ include "logging-pipeline-plumber.serviceAccountName" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
 	sed -i 's/manager-rolebinding/{{ include "logging-pipeline-plumber.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
 	sed -i 's/manager-role/{{ include "logging-pipeline-plumber.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/namespace: system/namespace: {{ .Values.namespace }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/namespace: system/namespace: {{ .Release.Namespace }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
 
 
 ##@ Deployment
