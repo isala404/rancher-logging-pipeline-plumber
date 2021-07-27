@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/pkg/sdk/api/v1alpha1"
+	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -68,7 +69,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 			Containers: []v1.Container{{
 				// TODO: Handle more than or less than 1 Container (#12)
 				Name:         referencePod.Spec.Containers[0].Name,
-				Image:        "k3d-rancher-logging-explorer-registry:5000/rancher-logging-explorer/pod-simulator:latest",
+				Image:        "k3d-logging-pipeline-plumber-registry:5000/logging-pipeline-plumber/pod-simulator:latest",
 				Args:         []string{"-log-dir", "/simulation.log"},
 				VolumeMounts: []v1.VolumeMount{{Name: "config-volume", MountPath: "/simulation.log", SubPath: "simulation.log"}},
 			}},

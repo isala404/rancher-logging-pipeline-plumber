@@ -1,7 +1,7 @@
 
 # Image URL to use all building/pushing image targets
 IMG ?= mrsupiri/logging-pipeline-plumber
-COMMIT_HASH = $(shell git log --pretty=format:'%h' -n 1))
+COMMIT_HASH = $(shell git log --pretty=format:'%h' -n 1)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:crdVersions=v1"
 
@@ -76,10 +76,10 @@ docker-push: ## Push docker image with the manager.
 helm-build: manifests ## Build helm chart with the manager.
 	cp -r config/crd/bases/ ../charts/logging-pipeline-plumber/crds/
 	$(KUSTOMIZE) build config/rbac > ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/controller-manager/{{ include "rancher-logging-explorer.serviceAccountName" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/manager-rolebinding/{{ include "rancher-logging-explorer.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/manager-role/{{ include "rancher-logging-explorer.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/namespace: system/namespace: {{ include "rancher-logging-explorer.namespace" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/controller-manager/{{ include "logging-pipeline-plumber.serviceAccountName" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/manager-rolebinding/{{ include "logging-pipeline-plumber.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/manager-role/{{ include "logging-pipeline-plumber.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/namespace: system/namespace: {{ .Values.namespace }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
 
 
 ##@ Deployment
@@ -91,7 +91,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=k3d-rancher-logging-explorer-registry:5000/${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=k3d-logging-pipeline-plumber-registry:5000/${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.

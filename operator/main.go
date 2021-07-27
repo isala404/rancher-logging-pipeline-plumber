@@ -18,9 +18,10 @@ package main
 
 import (
 	"flag"
-	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/pkg/sdk/api/v1alpha1"
-	"github.com/mrsupiri/rancher-logging-explorer/pkg/webserver"
 	"os"
+
+	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
+	"github.com/mrsupiri/logging-pipeline-plumber/pkg/webserver"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -35,7 +36,7 @@ import (
 
 	loggingoperatorv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 
-	"github.com/mrsupiri/rancher-logging-explorer/controllers"
+	"github.com/mrsupiri/logging-pipeline-plumber/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
