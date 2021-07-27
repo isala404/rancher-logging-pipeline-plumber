@@ -1,4 +1,4 @@
-module github.com/mrsupiri/rancher-logging-explorer
+module github.com/mrsupiri/logging-pipeline-plumber
 
 go 1.16
 

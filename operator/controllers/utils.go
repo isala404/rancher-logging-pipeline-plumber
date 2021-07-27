@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
-	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/pkg/sdk/api/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
+
+	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
+	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.Flow, flowv1beta1.Output) {
@@ -182,6 +183,6 @@ func GetLabels(name string, flowTest *loggingplumberv1alpha1.FlowTest, labelsMap
 		labels["loggingplumber.isala.me/flowtest"] = flowTest.ObjectMeta.Name
 	}
 	labels["app.kubernetes.io/created-by"] = "logging-plumber"
-	labels["app.kubernetes.io/managed-by"] = "rancher-logging-explorer"
+	labels["app.kubernetes.io/managed-by"] = "logging-pipeline-plumber"
 	return labels
 }

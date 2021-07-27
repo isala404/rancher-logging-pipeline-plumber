@@ -19,16 +19,17 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"time"
+
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/pkg/sdk/api/v1alpha1"
+	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"time"
 )
 
 // FlowTestReconciler reconciles a FlowTest object
@@ -96,20 +97,23 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Running {
+		oneMinuteAfterCreation := flowTest.CreationTimestamp.Add(1 * time.Minute)
+		fiveMinuteAfterCreation := flowTest.CreationTimestamp.Add(5 * time.Minute)
 		// Timeout
-		twoMinuteAfterCreation := flowTest.CreationTimestamp.Add(2 * time.Minute)
-		if time.Now().After(twoMinuteAfterCreation) {
+		if time.Now().After(fiveMinuteAfterCreation) {
 			flowTest.Status.Status = loggingplumberv1alpha1.Completed
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to update flowtest status")
 				return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
 			}
 			return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
-		} else {
+		} else if time.Now().After(oneMinuteAfterCreation) { // Give 1 minute to resource to provisioned
 			logger.V(1).Info("checking log indexes")
 			if err := r.checkForPassingFlowTest(ctx); err != nil {
 				return ctrl.Result{RequeueAfter: 30 * time.Second}, err
 			}
+		} else {
+			return ctrl.Result{RequeueAfter: oneMinuteAfterCreation.Sub(time.Now())}, nil
 		}
 	}
 

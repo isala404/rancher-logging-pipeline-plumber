@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "rancher-logging-explorer.name" -}}
+{{- define "logging-pipeline-plumber.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "rancher-logging-explorer.fullname" -}}
+{{- define "logging-pipeline-plumber.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "rancher-logging-explorer.chart" -}}
+{{- define "logging-pipeline-plumber.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "rancher-logging-explorer.labels" -}}
-helm.sh/chart: {{ include "rancher-logging-explorer.chart" . }}
-{{ include "rancher-logging-explorer.selectorLabels" . }}
+{{- define "logging-pipeline-plumber.labels" -}}
+helm.sh/chart: {{ include "logging-pipeline-plumber.chart" . }}
+{{ include "logging-pipeline-plumber.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "rancher-logging-explorer.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "rancher-logging-explorer.name" . }}
+{{- define "logging-pipeline-plumber.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "logging-pipeline-plumber.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "rancher-logging-explorer.serviceAccountName" -}}
+{{- define "logging-pipeline-plumber.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "rancher-logging-explorer.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "logging-pipeline-plumber.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

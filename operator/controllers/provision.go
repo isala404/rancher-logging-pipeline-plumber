@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	loggingplumberv1alpha1 "github.com/mrsupiri/rancher-logging-explorer/pkg/sdk/api/v1alpha1"
+	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -67,10 +68,11 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{{
 				// TODO: Handle more than or less than 1 Container (#12)
-				Name:         referencePod.Spec.Containers[0].Name,
-				Image:        "k3d-rancher-logging-explorer-registry:5000/rancher-logging-explorer/pod-simulator:latest",
-				Args:         []string{"-log-dir", "/simulation.log"},
-				VolumeMounts: []v1.VolumeMount{{Name: "config-volume", MountPath: "/simulation.log", SubPath: "simulation.log"}},
+				Name:            referencePod.Spec.Containers[0].Name,
+				ImagePullPolicy: v1.PullIfNotPresent,
+				Image:           "mrsupiri/pod-simulator:latest",
+				Args:            []string{"-log-dir", "/simulation.log"},
+				VolumeMounts:    []v1.VolumeMount{{Name: "config-volume", MountPath: "/simulation.log", SubPath: "simulation.log"}},
 			}},
 			Volumes: []v1.Volume{
 				{
@@ -105,9 +107,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		return err
 	}
 
-	err := r.deploySlicedFlows(ctx, extraLabels, &flowTest)
-
-	if err != nil {
+	if err := r.deploySlicedFlows(ctx, extraLabels, &flowTest); err != nil {
 		return err
 	}
 
@@ -306,6 +306,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 					Containers: []v1.Container{{
 						Name:  "log-output",
 						Image: "paynejacob/log-output:latest",
+						ImagePullPolicy: v1.PullIfNotPresent,
 						Ports: []v1.ContainerPort{{
 							Name:          "http",
 							ContainerPort: 80,

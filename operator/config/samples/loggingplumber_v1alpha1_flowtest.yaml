@@ -4,7 +4,7 @@ metadata:
   name: flowtest-sample
   labels:
     app.kubernetes.io/name: pod-simulation
-    app.kubernetes.io/managed-by: rancher-logging-explorer
+    app.kubernetes.io/managed-by: logging-pipeline-plumber
     app.kubernetes.io/created-by: logging-plumber
     loggingplumber.isala.me/flowtest: flowtest-sample
 spec:
@@ -28,7 +28,7 @@ metadata:
   name: clusterflowtest-sample
   labels:
     app.kubernetes.io/name: pod-simulation
-    app.kubernetes.io/managed-by: rancher-logging-explorer
+    app.kubernetes.io/managed-by: logging-pipeline-plumber
     app.kubernetes.io/created-by: logging-plumber
     loggingplumber.isala.me/flowtest: clusterflowtest-sample
 spec:
