@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "rancher-logging-explorer.fullname" . }}
+  name: {{ include "logging-pipeline-plumber.fullname" . }}
   labels:
-    {{- include "rancher-logging-explorer.labels" . | nindent 4 }}
+    {{- include "logging-pipeline-plumber.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "rancher-logging-explorer.fullname" . }}
+    name: {{ include "logging-pipeline-plumber.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

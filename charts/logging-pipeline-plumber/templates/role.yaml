@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: {{ include "rancher-logging-explorer.fullname" . }}
+  name: {{ include "logging-pipeline-plumber.fullname" . }}
 rules:
 - apiGroups:
   - ""
@@ -59,12 +59,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "rancher-logging-explorer.fullname" . }}
+  name: {{ include "logging-pipeline-plumber.fullname" . }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "rancher-logging-explorer.fullname" . }}
+  name: {{ include "logging-pipeline-plumber.fullname" . }}
 subjects:
 - kind: ServiceAccount
-  name: {{ include "rancher-logging-explorer.serviceAccountName" . }}
-  namespace: {{ include "rancher-logging-explorer.namespace" . }}
+  name: {{ include "logging-pipeline-plumber.serviceAccountName" . }}
+  namespace: {{ include "logging-pipeline-plumber.namespace" . }}

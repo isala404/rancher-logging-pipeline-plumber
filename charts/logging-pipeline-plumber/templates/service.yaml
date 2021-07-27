@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "rancher-logging-explorer.fullname" . }}
+  name: {{ include "logging-pipeline-plumber.fullname" . }}
   labels:
-    {{- include "rancher-logging-explorer.labels" . | nindent 4 }}
+    {{- include "logging-pipeline-plumber.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "rancher-logging-explorer.selectorLabels" . | nindent 4 }}
+    {{- include "logging-pipeline-plumber.selectorLabels" . | nindent 4 }}

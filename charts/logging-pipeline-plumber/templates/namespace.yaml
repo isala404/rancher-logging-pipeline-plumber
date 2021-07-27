@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   labels:
     control-plane: logging-pipeline-plumber
-  name: {{ include "rancher-logging-explorer.namespace" . }}
+  name: {{ include "logging-pipeline-plumber.namespace" . }}

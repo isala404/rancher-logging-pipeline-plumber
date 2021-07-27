@@ -1,10 +1,10 @@
-# Default values for rancher-logging-explorer.
+# Default values for logging-pipeline-plumber.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
-namespace: rancher-logging-explorer
+namespace: logging-pipeline-plumber
 
 image:
   repository: mrsupiri/logging-pipeline-plumber
@@ -21,7 +21,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "rancher-logging-explorer"
+  name: "logging-pipeline-plumber"
 
 podAnnotations: {}
 
