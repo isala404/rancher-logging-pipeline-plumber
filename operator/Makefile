@@ -74,8 +74,13 @@ docker-push: ## Push docker image with the manager.
 	docker push ${IMG}:latest
 
 helm-build: manifests ## Build helm chart with the manager.
-	cp config/crd/bases/ ../charts/crds/
-	$(KUSTOMIZE) build config/crd >> ../charts/templates/role.yaml
+	cp -r config/crd/bases/ ../charts/logging-pipeline-plumber/crds/
+	$(KUSTOMIZE) build config/rbac > ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/controller-manager/{{ include "rancher-logging-explorer.serviceAccountName" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/manager-rolebinding/{{ include "rancher-logging-explorer.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/manager-role/{{ include "rancher-logging-explorer.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/namespace: system/namespace: {{ include "rancher-logging-explorer.namespace" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+
 
 ##@ Deployment
 

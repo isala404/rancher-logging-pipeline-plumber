@@ -1,34 +1,70 @@
-{{- if .Values.serviceAccount.create -}}
-kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
+  creationTimestamp: null
   name: {{ include "rancher-logging-explorer.fullname" . }}
 rules:
-  - apiGroups: ["", "logging.banzaicloud.io", "apps"]
-    resources:
-      - clusterflows
-      - clusteroutputs
-      - flows
-      - outputs
-      - deploys
-      - pods
-      - deployments
-    verbs:
-      - delete
-      - create
-      - get
-      - list
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - pods
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - logging.banzaicloud.io
+  resources:
+  - clusterflows
+  - clusteroutputs
+  - flows
+  - outputs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - loggingplumber.isala.me
+  resources:
+  - flowtests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - loggingplumber.isala.me
+  resources:
+  - flowtests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - loggingplumber.isala.me
+  resources:
+  - flowtests/status
+  verbs:
+  - get
+  - patch
+  - update
 ---
-kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
   name: {{ include "rancher-logging-explorer.fullname" . }}
-subjects:
-  - kind: ServiceAccount
-    namespace: "default"
-    name: {{ include "rancher-logging-explorer.fullname" . }}
 roleRef:
+  apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: {{ include "rancher-logging-explorer.fullname" . }}
-  apiGroup: "rbac.authorization.k8s.io"
-{{- end }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "rancher-logging-explorer.serviceAccountName" . }}
+  namespace: {{ include "rancher-logging-explorer.namespace" . }}
