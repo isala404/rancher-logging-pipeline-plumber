@@ -1,6 +1,7 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= mrsupiri/logging-pipeline-plumber
+COMMIT_HASH = $(shell git log --pretty=format:'%h' -n 1))
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:crdVersions=v1"
 
@@ -65,11 +66,16 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+	docker build -t ${IMG}:latest .
+	docker tag ${IMG}:latest ${IMG}:${COMMIT_HASH}
+	docker tag ${IMG}:latest ${IMG}:dev
 
 docker-push: ## Push docker image with the manager.
-	docker tag ${IMG} localhost:37129/${IMG}
-	docker push localhost:37129/${IMG}
+	docker push ${IMG}:latest
+
+helm-build: manifests ## Build helm chart with the manager.
+	cp config/crd/bases/ ../charts/crds/
+	$(KUSTOMIZE) build config/crd >> ../charts/templates/role.yaml
 
 ##@ Deployment
 
