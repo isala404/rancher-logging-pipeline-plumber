@@ -44,13 +44,15 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 
 update-chart: manifests ## Build helm chart with the manager.
 	cp config/crd/bases/* ./charts/logging-pipeline-plumber/crds/
+	sed -i 's/- service_account.yaml/#- service_account.yaml/' ./config/rbac/kustomization.yaml
 	$(KUSTOMIZE) build config/rbac > ./charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/#- service_account.yaml/- service_account.yaml/' ./config/rbac/kustomization.yaml
 	sed -i 's/controller-manager/{{ include "logging-pipeline-plumber.serviceAccountName" . }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
 	sed -i 's/manager-rolebinding/{{ include "logging-pipeline-plumber.fullname" . }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
 	sed -i 's/manager-role/{{ include "logging-pipeline-plumber.fullname" . }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
 	sed -i 's/namespace: system/namespace: {{ .Release.Namespace }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
 
-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+generate: controller-gen manifests update-chart ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	cd pkg/sdk && $(CONTROLLER_GEN) object paths="./api/..."
 
 fmt: ## Run go fmt against code.
