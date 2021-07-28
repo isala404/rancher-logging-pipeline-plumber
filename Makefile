@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= mrsupiri/logging-pipeline-plumber
+IMG ?= supiri/logging-pipeline-plumber
 COMMIT_HASH = $(shell git log --pretty=format:'%h' -n 1)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:crdVersions=v1"
@@ -42,6 +42,14 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	cd pkg/sdk && $(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=../../config/crd/bases
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role paths="./controllers/..." output:rbac:artifacts:config=./config/rbac
 
+update-chart: manifests ## Build helm chart with the manager.
+	cp config/crd/bases/* ./charts/logging-pipeline-plumber/crds/
+	$(KUSTOMIZE) build config/rbac > ./charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/controller-manager/{{ include "logging-pipeline-plumber.serviceAccountName" . }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/manager-rolebinding/{{ include "logging-pipeline-plumber.fullname" . }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/manager-role/{{ include "logging-pipeline-plumber.fullname" . }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
+	sed -i 's/namespace: system/namespace: {{ .Release.Namespace }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
+
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	cd pkg/sdk && $(CONTROLLER_GEN) object paths="./api/..."
 
@@ -59,28 +67,26 @@ test: manifests generate fmt vet ## Run tests.
 
 ##@ Build
 
-build: generate fmt vet ## Build manager binary.
+build-binary: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
-docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG}:latest .
-	docker tag ${IMG}:latest ${IMG}:${COMMIT_HASH}
-	docker tag ${IMG}:latest ${IMG}:dev
+operator-build: test ## Build docker image with the manager.
+	docker build -t ${IMG}:dev .
+	docker tag ${IMG}:dev ${IMG}:${COMMIT_HASH}
 
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}:latest
+react-build:
+	cd ui && yarn build
+	cp -r ui/build/ ./pkg/webserver/
 
-helm-build: manifests ## Build helm chart with the manager.
-	cp config/crd/bases/* ../charts/logging-pipeline-plumber/crds/
-	$(KUSTOMIZE) build config/rbac > ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/controller-manager/{{ include "logging-pipeline-plumber.serviceAccountName" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/manager-rolebinding/{{ include "logging-pipeline-plumber.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/manager-role/{{ include "logging-pipeline-plumber.fullname" . }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
-	sed -i 's/namespace: system/namespace: {{ .Release.Namespace }}/' ../charts/logging-pipeline-plumber/templates/role.yaml
+pod-simulator-build:
+	cd pod-simulator && docker build -t supiri/pod-simulator:dev .
+	docker tag supiri/pod-simulator:dev supiri/pod-simulator:${COMMIT_HASH}
 
+build: react-build operator-build pod-simulator-build
+	helm package ./charts/logging-pipeline-plumber -d dist
 
 ##@ Deployment
 
@@ -91,7 +97,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=k3d-logging-pipeline-plumber-registry:5000/${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}:${COMMIT_HASH}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.

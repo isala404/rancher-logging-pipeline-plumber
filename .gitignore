@@ -28,5 +28,8 @@ testbin/*
 *~
 
 # UI
-operator/pkg/webserver/build/*
-!operator/pkg/webserver/build/gitkeep
+pkg/webserver/build/*
+!pkg/webserver/build/gitkeep
+
+# CI/CD
+dist/*

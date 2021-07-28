@@ -304,8 +304,8 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 				},
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{{
-						Name:  "log-output",
-						Image: "paynejacob/log-output:latest",
+						Name:            "log-output",
+						Image:           "paynejacob/log-output:latest",
 						ImagePullPolicy: v1.PullIfNotPresent,
 						Ports: []v1.ContainerPort{{
 							Name:          "http",

@@ -3,3 +3,8 @@
 !**/*.go
 !**/*.mod
 !**/*.sum
+charts/*
+bin/*
+ui/*
+pod-simulator/*
+dist/*
