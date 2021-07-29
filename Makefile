@@ -52,7 +52,7 @@ update-chart: manifests ## Build helm chart with the manager.
 	sed -i 's/manager-role/{{ include "logging-pipeline-plumber.fullname" . }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
 	sed -i 's/namespace: system/namespace: {{ .Release.Namespace }}/' ./charts/logging-pipeline-plumber/templates/role.yaml
 
-generate: controller-gen manifests update-chart ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+generate: setup manifests update-chart ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	cd pkg/sdk && $(CONTROLLER_GEN) object paths="./api/..."
 
 fmt: ## Run go fmt against code.
@@ -67,10 +67,12 @@ test: manifests generate fmt vet ## Run tests.
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
-lint: fmt vet
+lint: setup fmt vet
 	cd ui && yarn run eslint
 	cd charts/logging-pipeline-plumber && helm lint
 
+setup: kustomize controller-gen 
+	cd ui && yarn install
 ##@ Build
 
 build-binary: generate fmt vet ## Build manager binary.
@@ -91,7 +93,7 @@ pod-simulator-build:
 	cd pod-simulator && docker build -t supiri/pod-simulator:dev .
 	docker tag supiri/pod-simulator:dev supiri/pod-simulator:${COMMIT_HASH}
 
-build: react-build operator-build pod-simulator-build
+build: setup react-build operator-build pod-simulator-build
 	helm package ./charts/logging-pipeline-plumber -d dist
 
 ##@ Deployment
