@@ -12,11 +12,11 @@ func main() {
 	var logDir string
 	var echoDelay time.Duration
 	flag.DurationVar(&echoDelay, "delay", 3*time.Second, "interval between 2 log echos")
-	flag.StringVar(&logDir, "log-dir", "", "absolute path for the log file")
+	flag.StringVar(&logDir, "log_file", "", "absolute path for the log file")
 	flag.Parse()
 
 	if len(logDir) == 0 {
-		fmt.Println("Usage: ./pod-simulator -log-dir")
+		fmt.Println("Usage: ./pod-simulator -log_file")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -56,7 +56,7 @@ func main() {
 
 	// ------------------------------------------------------------------------------------------
 
-	for ; ; {
+	for {
 		for _, line := range text {
 			fmt.Println(line)
 			time.Sleep(echoDelay)
