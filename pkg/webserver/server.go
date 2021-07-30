@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"github.com/go-logr/logr"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"io/ioutil"
 	"log"
 	"net"
@@ -76,8 +77,15 @@ func (ws *WebServer) ListenAndServe(stopCh <-chan struct{}) {
 	r.PathPrefix("/k8s").HandlerFunc(ws.ProxyToKubeAPI)
 	r.PathPrefix("/").Handler(clientHandler())
 
+	corsOpts := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3030"}, //Dev React APP
+		AllowedMethods: []string{
+			http.MethodGet,
+		},
+	})
+
 	go func() {
-		if err := http.ListenAndServe(ws.port, r); err != http.ErrServerClosed {
+		if err := http.ListenAndServe(ws.port, corsOpts.Handler(r)); err != http.ErrServerClosed {
 			log.Printf("Receiver webserver crashed: %s", err)
 			os.Exit(1)
 		}
