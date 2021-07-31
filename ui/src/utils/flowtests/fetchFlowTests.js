@@ -1,5 +1,5 @@
 import axios from 'axios';
-import snackbarUtils from './snackbarUtils';
+import snackbarUtils from '../../libs/snackbarUtils';
 
 export default async function getFlowTests() {
   const flowTests = [];
@@ -14,6 +14,7 @@ export default async function getFlowTests() {
 
       flowTests.push({
         id: index,
+        uuid: flowTest.metadata.uid,
         status: flowTest.status.status,
         name: flowTest.metadata.name,
         flowType: flowTest.spec.referenceFlow.kind,

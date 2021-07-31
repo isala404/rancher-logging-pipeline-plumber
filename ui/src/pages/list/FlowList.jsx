@@ -1,8 +1,9 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@material-ui/data-grid';
 import { Button } from '@material-ui/core';
-import getFlowTests from '../../libs/fetchFlowTests';
-import deleteFlowTest from '../../libs/deleteFlowTest';
+import { useHistory } from 'react-router-dom';
+import fetchFlowTests from '../../utils/flowtests/fetchFlowTests';
+import deleteFlowTest from '../../utils/flowtests/deleteFlowTest';
 
 const columns = [
   {
@@ -39,10 +40,11 @@ export default function FlowList() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFlows, setSeletedFlows] = useState([]);
+  const history = useHistory();
 
   useEffect(async () => {
     setLoading(false);
-    setData(await getFlowTests());
+    setData(await fetchFlowTests());
   }, []);
 
   const getSelectedFlows = (e) => {
@@ -52,8 +54,8 @@ export default function FlowList() {
   };
 
   return (
-    <>
-      <Button variant="contained" color="primary" onClick={() => { deleteFlowTest(selectedFlows); }}>
+    <div>
+      <Button style={{ marginBottom: '10px' }} variant="contained" color="secondary" onClick={() => { deleteFlowTest(selectedFlows); }}>
         Delete
       </Button>
       <DataGrid
@@ -64,7 +66,8 @@ export default function FlowList() {
         autoHeight
         disableExtendRowFullWidth
         onSelectionModelChange={getSelectedFlows}
+        onRowClick={(row) => history.push(`flowtest/${row.row.uuid}`)}
       />
-    </>
+    </div>
   );
 }

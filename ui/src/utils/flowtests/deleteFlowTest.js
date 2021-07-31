@@ -1,5 +1,5 @@
 import axios from 'axios';
-import snackbarUtils from './snackbarUtils';
+import snackbarUtils from '../../libs/snackbarUtils';
 
 export default async function deleteFlowTest(flowList) {
   flowList.forEach(async (flow) => {
