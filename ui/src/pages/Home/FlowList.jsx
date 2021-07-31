@@ -35,13 +35,13 @@ const columns = [
 ];
 
 export default function FlowList() {
-  // eslint-disable-next-line no-unused-vars
   const [data, setData] = useState([]);
 
   useEffect(async () => {
     setData(await getFlowTests());
   }, []);
 
+  // eslint-disable-next-line no-unreachable
   return (
     <Container style={{ width: '95%', maxWidth: '100%' }}>
       <DataGrid

@@ -78,7 +78,7 @@ func (ws *WebServer) ListenAndServe(stopCh <-chan struct{}) {
 	r.PathPrefix("/").Handler(clientHandler())
 
 	corsOpts := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3030"}, //Dev React APP
+		AllowedOrigins: []string{"http://localhost:3000"}, //Dev React APP
 		AllowedMethods: []string{
 			http.MethodGet,
 		},

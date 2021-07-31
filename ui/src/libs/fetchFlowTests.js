@@ -1,4 +1,5 @@
 import axios from 'axios';
+import snackbarUtils from './snackbarUtils';
 
 export default async function getFlowTests() {
   const flowTests = [];
@@ -25,7 +26,8 @@ export default async function getFlowTests() {
       });
     });
   } catch (error) {
-    console.error(error);
+    snackbarUtils.error(`[HTTP error]: ${error.message}`);
+    snackbarUtils.warning('Failed to fetch flowtest list');
   }
   return flowTests;
 }
