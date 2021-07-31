@@ -81,6 +81,8 @@ func (ws *WebServer) ListenAndServe(stopCh <-chan struct{}) {
 		AllowedOrigins: []string{"http://localhost:3000"}, //Dev React APP
 		AllowedMethods: []string{
 			http.MethodGet,
+			http.MethodDelete,
+			http.MethodPost,
 		},
 	})
 

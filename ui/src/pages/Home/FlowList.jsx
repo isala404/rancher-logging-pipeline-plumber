@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { DataGrid } from '@material-ui/data-grid';
-import Container from '@material-ui/core/Container';
+import { Button } from '@material-ui/core';
 import getFlowTests from '../../libs/fetchFlowTests';
+import deleteFlowTest from '../../libs/deleteFlowTest';
 
 const columns = [
   {
@@ -36,21 +37,34 @@ const columns = [
 
 export default function FlowList() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedFlows, setSeletedFlows] = useState([]);
 
   useEffect(async () => {
+    setLoading(false);
     setData(await getFlowTests());
   }, []);
 
-  // eslint-disable-next-line no-unreachable
+  const getSelectedFlows = (e) => {
+    const selectedIDs = new Set(e);
+    const selectedRowData = data.filter((row) => selectedIDs.has(row.id));
+    setSeletedFlows(selectedRowData);
+  };
+
   return (
-    <Container style={{ width: '95%', maxWidth: '100%' }}>
+    <>
+      <Button variant="contained" color="primary" onClick={() => { deleteFlowTest(selectedFlows); }}>
+        Delete
+      </Button>
       <DataGrid
         rows={data}
+        loading={loading}
         columns={columns}
         checkboxSelection
         autoHeight
         disableExtendRowFullWidth
+        onSelectionModelChange={getSelectedFlows}
       />
-    </Container>
+    </>
   );
 }
