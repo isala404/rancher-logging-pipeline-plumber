@@ -10,9 +10,8 @@ export default function ListView() {
     <Container style={{ width: '95%', maxWidth: '100%', marginTop: '50px' }}>
 
       <Grid
-        justify="space-between" // Add it here :)
+        justifyContent="space-between"
         container
-        spacing={24}
       >
         <Grid item>
           <Typography variant="h4" gutterBottom>

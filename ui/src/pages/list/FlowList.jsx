@@ -10,16 +10,19 @@ const columns = [
     field: 'status', headerName: 'Status', minWidth: 150,
   },
   {
-    field: 'name', headerName: 'Name', minWidth: 250,
+    field: 'name', headerName: 'Name', minWidth: 230,
   },
   {
     field: 'flowType', headerName: 'Flow Type', minWidth: 150,
   },
   {
-    field: 'referencePod', headerName: 'Reference Pod', minWidth: 200,
+    field: 'namespace', headerName: 'Namespace', minWidth: 160,
   },
   {
-    field: 'referenceFlow', headerName: 'Reference Flow', minWidth: 200,
+    field: 'referencePod', headerName: 'Reference Pod', minWidth: 175,
+  },
+  {
+    field: 'referenceFlow', headerName: 'Reference Flow', minWidth: 180,
   },
   {
     field: 'totalTests', headerName: 'Total Tests', minWidth: 150, type: 'number',
