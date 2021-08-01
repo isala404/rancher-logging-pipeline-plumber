@@ -71,7 +71,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 				Name:            referencePod.Spec.Containers[0].Name,
 				ImagePullPolicy: v1.PullIfNotPresent,
 				Image:           "mrsupiri/pod-simulator:latest",
-				Args:            []string{"-log-dir", "/simulation.log"},
+				Args:            []string{"-log_file", "/simulation.log"},
 				VolumeMounts:    []v1.VolumeMount{{Name: "config-volume", MountPath: "/simulation.log", SubPath: "simulation.log"}},
 			}},
 			Volumes: []v1.Volume{
