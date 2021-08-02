@@ -1,29 +1,40 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import axios from 'axios';
+import { SnackbarProvider } from 'notistack';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+} from 'react-router-dom';
+import { SnackbarUtilsConfigurator } from './libs/snackbarUtils';
+import ListView from './pages/list/ListPage';
+import CreateView from './pages/create/CreatePage';
+import DetailView from './pages/get/DetailPage';
+
+if (process.env.REACT_APP_BASE_URL) {
+  axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit
-          {' '}
-          <code>src/App.js</code>
-          {' '}
-          and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <SnackbarProvider maxSnack={5}>
+          <SnackbarUtilsConfigurator />
+          <Switch>
+            <Route exact path="/">
+              <ListView />
+            </Route>
+            <Route path="/create">
+              <CreateView />
+            </Route>
+            <Route path="/flowtest/:uuid">
+              <DetailView />
+            </Route>
+          </Switch>
+        </SnackbarProvider>
+      </div>
+    </Router>
   );
 }
 
