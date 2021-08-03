@@ -7,13 +7,15 @@ import {
   Checkbox, TextField, Select, FormLabel, Paper, Grid, Button, TextareaAutosize,
 } from '@material-ui/core';
 import ParseTextarea from '../components/ParseTextarea';
-import { createFlowTest } from '../utils/flowtests/createFlowTest';
+import LazyAutoComplete from '../components/LazyAutoComplete';
+import { createFlowTest, getPods } from '../utils/flowtests/createFlowTest';
 
 export default function CreateView() {
   const { control, handleSubmit } = useForm();
 
   const onSubmit = (data) => {
-    createFlowTest(data);
+    // createFlowTest(data);
+    console.log(data);
   };
 
   return (
@@ -32,7 +34,16 @@ export default function CreateView() {
             </Grid>
             <Grid item xs={12}>
               <Controller
-                render={({ field }) => <TextField {...field} label="Pod Name" variant="outlined" />}
+                render={({ field }) => (
+                  <LazyAutoComplete
+                    {...field}
+                    label="Pod Name"
+                    variant="outlined"
+                    fetchfunc={async () => getPods('default')}
+                    style={{ display: 'inline-block', width: '252px' }}
+                    ref={null}
+                  />
+                )}
                 name="spec.referencePod.name"
                 control={control}
                 defaultValue=""

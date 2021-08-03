@@ -36,11 +36,11 @@ export async function createFlowTest(data) {
   }
 }
 
-export async function getPods() {
+export const getPods = async (namespace) => {
   const pods = [];
   try {
-    const res = await axios.get('k8s/api/v1/pods');
-    res.data.items.foreach((pod) => {
+    const res = await axios.get(`k8s/api/v1/namespaces/${namespace}/pods`);
+    res.data.items.forEach((pod) => {
       pods.push({
         name: pod.metadata.name,
         namespace: pod.metadata.namespace,
@@ -51,4 +51,4 @@ export async function getPods() {
     snackbarUtils.warning('Failed to fetch pods');
   }
   return pods;
-}
+};
