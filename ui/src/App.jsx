@@ -7,9 +7,9 @@ import {
   Route,
 } from 'react-router-dom';
 import { SnackbarUtilsConfigurator } from './libs/snackbarUtils';
-import ListView from './pages/list/ListPage';
-import CreateView from './pages/create/CreatePage';
-import DetailView from './pages/get/DetailPage';
+import ListView from './pages/ListPage';
+import CreateView from './pages/CreatePage';
+import DetailView from './pages/DetailPage';
 
 if (process.env.REACT_APP_BASE_URL) {
   axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;

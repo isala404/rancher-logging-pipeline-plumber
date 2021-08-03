@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@material-ui/data-grid';
 import { Button } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
-import fetchFlowTests from '../../utils/flowtests/fetchFlowTests';
-import deleteFlowTest from '../../utils/flowtests/deleteFlowTest';
+import fetchFlowTests from '../utils/flowtests/fetchFlowTests';
+import deleteFlowTest from '../utils/flowtests/deleteFlowTest';
 
 const columns = [
   {
