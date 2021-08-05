@@ -1,9 +1,20 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react';
 import { TextareaAutosize } from '@material-ui/core';
+import { getLastNlogs } from '../utils/flowtests/createFlowTest';
 
-// eslint-disable-next-line react/prop-types
-const ParseTextarea = ({ onChange }) => {
+const ParseTextarea = ({
+  onChange, pod, namespace, nLines,
+}) => {
   const [text, setText] = React.useState('');
+
+  React.useEffect(async () => {
+    if (!pod || !namespace || !nLines) {
+      return;
+    }
+    const logs = await getLastNlogs(pod, namespace, nLines);
+    setText(logs);
+  }, [pod, namespace]);
 
   const handleChange = (e) => {
     const newValue = e.target.value;

@@ -14,8 +14,9 @@ import {
 
 export default function CreateView() {
   const { control, handleSubmit } = useForm();
+  const referencePod = useWatch({ control, name: 'spec.referencePod.name' });
   const referencePodNS = useWatch({ control, name: 'spec.referencePod.namespace' });
-  const referenceFlowKind = useWatch({ control, name: 'spec.referenceFlow.kind', defaultValue: '' });
+  const referenceFlowKind = useWatch({ control, name: 'spec.referenceFlow.kind' });
   const referenceFlowNS = useWatch({ control, name: 'spec.referenceFlow.namespace' });
 
   const onSubmit = (data) => {
@@ -98,7 +99,15 @@ export default function CreateView() {
             <Grid item xs={12}>
               <Controller
                 // without ref=null, it logs an error
-                render={({ field }) => <ParseTextarea {...field} ref={null} />}
+                render={({ field }) => (
+                  <ParseTextarea
+                    {...field}
+                    ref={null}
+                    pod={referencePod}
+                    namespace={referencePodNS}
+                    nLines={10}
+                  />
+                )}
                 name="spec.sentMessages"
                 control={control}
               />

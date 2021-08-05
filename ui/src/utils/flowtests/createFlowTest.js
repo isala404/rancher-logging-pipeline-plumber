@@ -85,3 +85,14 @@ export const getFlows = async (namespace, type) => {
   }
   return flows;
 };
+
+export const getLastNlogs = async (pod, namespace, nLines) => {
+  try {
+    const res = await axios.get(`k8s/api/v1/namespaces/${namespace}/pods/${pod}/log?tailLines=${nLines}`);
+    return res.data;
+  } catch (error) {
+    snackbarUtils.error(`[HTTP error]: ${error.message}`);
+    snackbarUtils.warning('Failed to fetch logs');
+  }
+  return '';
+};
