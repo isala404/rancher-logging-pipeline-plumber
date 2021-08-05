@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/jsx-props-no-spreading */
 import * as React from 'react';
 import Container from '@material-ui/core/Container';
@@ -6,23 +5,37 @@ import { useForm, Controller, useWatch } from 'react-hook-form';
 import {
   InputLabel, TextField, Select, MenuItem, Paper, Grid, Button, FormControl,
 } from '@material-ui/core';
+import { yupResolver } from '@hookform/resolvers/yup';
 import ParseTextarea from '../components/ParseTextarea';
 import ControlledAutocomplete from '../components/ControlledAutocomplete';
 import {
   createFlowTest, getNamespaces, getPods, getFlows,
 } from '../utils/flowtests/createFlowTest';
+import schema from '../utils/flowtests/validation';
+import keyLookup from '../libs/jsonLookup';
+import snackbarUtils from '../libs/snackbarUtils';
 
 export default function CreateView() {
-  const { control, handleSubmit } = useForm();
+  const { control, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(schema),
+  });
   const referencePod = useWatch({ control, name: 'spec.referencePod.name' });
   const referencePodNS = useWatch({ control, name: 'spec.referencePod.namespace' });
   const referenceFlowKind = useWatch({ control, name: 'spec.referenceFlow.kind' });
   const referenceFlowNS = useWatch({ control, name: 'spec.referenceFlow.namespace' });
 
   const onSubmit = (data) => {
-    // createFlowTest(data);
-    console.log(data);
+    createFlowTest(data);
   };
+
+  React.useEffect(async () => {
+    if (errors) {
+      const messages = keyLookup(errors, 'message');
+      if (messages) {
+        snackbarUtils.error(messages);
+      }
+    }
+  }, [errors]);
 
   return (
     <Container style={{ width: '95%', maxWidth: '100%' }}>
@@ -32,7 +45,7 @@ export default function CreateView() {
           <Grid container alignItems="flex-start" spacing={2}>
             <Grid item xs={12}>
               <Controller
-                render={({ field }) => <TextField {...field} label="Test Name" variant="outlined" />}
+                render={({ field }) => <TextField {...field} label="Test Name" variant="outlined" required />}
                 name="metadata.name"
                 control={control}
                 defaultValue=""
@@ -46,6 +59,7 @@ export default function CreateView() {
                 name="spec.referencePod.namespace"
                 fetchfunc={async () => getNamespaces()}
                 style={{ display: 'inline-block', width: '252px' }}
+                required
               />
               <ControlledAutocomplete
                 control={control}
@@ -55,6 +69,7 @@ export default function CreateView() {
                 fetchfunc={async () => getPods(referencePodNS)}
                 style={{ display: 'inline-block', width: '252px' }}
                 disabled={!referencePodNS}
+                required
               />
             </Grid>
             <Grid item xs={12}>
@@ -68,6 +83,7 @@ export default function CreateView() {
                       label="FlowType"
                       {...field}
                       style={{ display: 'inline-block', width: '252px' }}
+                      required
                     >
                       <MenuItem value="Flow">Flow</MenuItem>
                       <MenuItem value="ClusterFlow">ClusterFlow</MenuItem>
@@ -85,6 +101,7 @@ export default function CreateView() {
                 fetchfunc={async () => getNamespaces()}
                 style={{ display: 'inline-block', width: '252px' }}
                 disabled={!referenceFlowKind}
+                required
               />
               <ControlledAutocomplete
                 control={control}
@@ -94,6 +111,7 @@ export default function CreateView() {
                 fetchfunc={async () => getFlows(referenceFlowNS, referenceFlowKind)}
                 style={{ display: 'inline-block', width: '252px' }}
                 disabled={!referenceFlowNS}
+                required
               />
             </Grid>
             <Grid item xs={12}>
@@ -106,6 +124,7 @@ export default function CreateView() {
                     pod={referencePod}
                     namespace={referencePodNS}
                     nLines={10}
+                    required
                   />
                 )}
                 name="spec.sentMessages"
@@ -115,9 +134,6 @@ export default function CreateView() {
             <Grid item xs={12}>
               <Button type="submit" variant="contained" color="primary">
                 Create
-              </Button>
-              <Button type="reset" variant="contained" color="secondary">
-                Rest
               </Button>
             </Grid>
           </Grid>

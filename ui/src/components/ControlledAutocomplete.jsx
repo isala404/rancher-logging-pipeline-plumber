@@ -11,7 +11,7 @@ const ControlledAutocomplete = (props) => {
 
   const {
     // eslint-disable-next-line react/prop-types
-    control, label, variant, name, style, fetchfunc, disabled,
+    control, label, variant, name, style, fetchfunc, disabled, required,
   } = props;
 
   React.useEffect(async () => {
@@ -45,6 +45,7 @@ const ControlledAutocomplete = (props) => {
               style={style}
               label={label}
               variant={variant}
+              required={required}
             />
           )}
           onChange={(_, data) => {

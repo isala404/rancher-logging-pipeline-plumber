@@ -4,7 +4,7 @@ import { TextareaAutosize } from '@material-ui/core';
 import { getLastNlogs } from '../utils/flowtests/createFlowTest';
 
 const ParseTextarea = ({
-  onChange, pod, namespace, nLines,
+  onChange, pod, namespace, nLines, required,
 }) => {
   const [text, setText] = React.useState('');
 
@@ -14,6 +14,7 @@ const ParseTextarea = ({
     }
     const logs = await getLastNlogs(pod, namespace, nLines);
     setText(logs);
+    onChange(logs.split('\n'));
   }, [pod, namespace]);
 
   const handleChange = (e) => {
@@ -22,7 +23,7 @@ const ParseTextarea = ({
     onChange(newValue.split('\n'));
   };
 
-  return <TextareaAutosize onChange={handleChange} value={text} style={{ height: '180px', width: '750px' }} />;
+  return <TextareaAutosize onChange={handleChange} value={text} style={{ height: '180px', width: '750px' }} required={required} />;
 };
 
 export default ParseTextarea;
