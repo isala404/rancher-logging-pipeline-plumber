@@ -1,0 +1,49 @@
+#!/bin/bash
+
+GITHUB_REF=${GITHUB_REF##*/}
+GITHUB_REF=${GITHUB_REF:=local}
+
+# ensure we have a lowercase name
+GITHUB_REPOSITORY=$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')
+
+GITHUB_REPOSITORY=${GITHUB_REPOSITORY:=mrsupiri/rancher-logging-pipeline-plumber}
+IS_PRERELEASE=false
+CONTROLLER_IMAGE_NAME=ghcr.io/$GITHUB_REPOSITORY
+SIMULATOR_IMAGE_NAME=ghcr.io/$GITHUB_REPOSITORY/pod-simulator
+
+# if this is a tag use the tag name
+if git describe --exact-match --tags > /dev/null 2>&1 ; then
+    VERSION=$(git describe --exact-match --tags | tr '[:upper:]' '[:lower:]')
+    IMAGE_TAG=$(git describe --exact-match --tags | tr '[:upper:]' '[:lower:]')
+# if this is not a tag use the branch name and commit hash
+else
+    VERSION=dev-$(git log --oneline -n 1 | cut -d" " -f1 | tr '[:upper:]' '[:lower:]')
+    IMAGE_TAG=$GITHUB_REF-head
+fi
+
+# if this is an rc it is a prerelease
+if [[ "$VERSION" =~ -rc\d+$ ]]; then
+  IS_PRERELEASE=true
+fi
+
+# add to the github env if we are running in an github action
+if [ "$GITHUB_ACTIONS" = true ] ; then
+  echo "CONTROLLER_IMAGE_NAME=$CONTROLLER_IMAGE_NAME" >> $GITHUB_ENV
+  echo "SIMULATOR_IMAGE_NAME=$SIMULATOR_IMAGE_NAME" >> $GITHUB_ENV
+  echo "IS_PRERELEASE=$IS_PRERELEASE" >> $GITHUB_ENV
+  echo "VERSION=$VERSION" >> $GITHUB_ENV
+  echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+fi
+
+
+export CONTROLLER_IMAGE_NAME=$CONTROLLER_IMAGE_NAME
+export SIMULATOR_IMAGE_NAME=$SIMULATOR_IMAGE_NAME
+export IS_PRERELEASE=$IS_PRERELEASE
+export VERSION=$VERSION
+export IMAGE_TAG=$IMAGE_TAG
+
+echo "IS_PRERELEASE: $IS_PRERELEASE"
+echo "CONTROLLER_IMAGE_NAME: $CONTROLLER_IMAGE_NAME"
+echo "SIMULATOR_IMAGE_NAME: $SIMULATOR_IMAGE_NAME"
+echo "VERSION: $VERSION"
+echo "IMAGE_TAG: $IMAGE_TAG"

@@ -1,0 +1,25 @@
+name: push image
+
+on:
+  push:
+    branches:
+      - master
+      - release/*
+
+jobs:
+  push-image:
+    name: push-image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: make build
+      - run: docker push $CONTROLLER_IMAGE_NAME:$VERSION 
+      - run: docker push $CONTROLLER_IMAGE_NAME:$IMAGE_TAG
+      - run: docker push $SIMULATOR_IMAGE_NAME:$VERSION 
+      - run: docker push $SIMULATOR_IMAGE_NAME:$IMAGE_TAG

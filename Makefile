@@ -1,7 +1,3 @@
-
-# Image URL to use all building/pushing image targets
-IMG ?= supiri/logging-pipeline-plumber
-COMMIT_HASH = $(shell git log --pretty=format:'%h' -n 1)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:crdVersions=v1"
 
@@ -21,7 +17,7 @@ KUSTOMIZE = $(shell pwd)/bin/kustomize
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
-SHELL = /usr/bin/env bash -o pipefail
+SHELL = /bin/bash -o pipefail
 .SHELLFLAGS = -ec
 
 all: build
@@ -61,21 +57,18 @@ update-chart: manifests ## Build helm chart with the manager.
 generate: setup manifests update-chart ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	cd pkg/sdk && $(CONTROLLER_GEN) object paths="./api/..."
 
-fmt: ## Run go fmt against code.
-	go fmt ./...
-
-vet: ## Run go vet against code.
-	go vet ./...
-
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test: manifests generate fmt vet ## Run tests.
+test: manifests generate ## Run tests.
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
-lint: setup fmt vet
+lint: setup
+	go fmt ./...
+	go vet ./...
+	go mod tidy
 	cd ui && yarn run eslint
-	cd charts/logging-pipeline-plumber && helm lint
+	helm lint charts/logging-pipeline-plumber
 
 setup: ## Download controller-gen and  locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1) 
@@ -84,26 +77,11 @@ setup: ## Download controller-gen and  locally if necessary.
 
 ##@ Build
 
-build-binary: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
-
-run: manifests generate fmt vet ## Run a controller from your host.
+run: manifests generate ## Run a controller from your host.
 	go run ./main.go
 
-operator-build: test ## Build docker image with the manager.
-	docker build -t ${IMG}:dev .
-	docker tag ${IMG}:dev ${IMG}:${COMMIT_HASH}
-
-react-build:
-	cd ui && yarn build
-	cp -r ui/build/ ./pkg/webserver/
-
-pod-simulator-build:
-	cd pod-simulator && docker build -t supiri/pod-simulator:dev .
-	docker tag supiri/pod-simulator:dev supiri/pod-simulator:${COMMIT_HASH}
-
-build: setup react-build operator-build pod-simulator-build
-	helm package ./charts/logging-pipeline-plumber -d dist
+build:
+	source scripts/version && scripts/build
 
 ##@ Deployment
 
@@ -114,7 +92,7 @@ uninstall: manifests ## Uninstall CRDs from the K8s cluster specified in ~/.kube
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
 deploy: manifests ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}:${COMMIT_HASH}
+	source scripts/version && cd config/manager && $(KUSTOMIZE) edit set image controller=${CONTROLLER_IMAGE_NAME}:${VERSION}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
