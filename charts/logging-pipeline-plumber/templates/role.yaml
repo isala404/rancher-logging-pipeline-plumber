@@ -8,6 +8,7 @@ rules:
   - ""
   resources:
   - configmaps
+  - namespaces
   - pods
   - services
   verbs:
@@ -16,6 +17,13 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/log
+  verbs:
+  - get
+  - list
 - apiGroups:
   - logging.banzaicloud.io
   resources:
