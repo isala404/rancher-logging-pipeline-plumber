@@ -41,14 +41,47 @@ export const getPods = async (namespace) => {
   try {
     const res = await axios.get(`k8s/api/v1/namespaces/${namespace}/pods`);
     res.data.items.forEach((pod) => {
-      pods.push({
-        name: pod.metadata.name,
-        namespace: pod.metadata.namespace,
-      });
+      pods.push(pod.metadata.name);
     });
   } catch (error) {
     snackbarUtils.error(`[HTTP error]: ${error.message}`);
     snackbarUtils.warning('Failed to fetch pods');
   }
   return pods;
+};
+
+export const getNamespaces = async () => {
+  const namespaces = [];
+  try {
+    const res = await axios.get('k8s/api/v1/namespaces');
+    res.data.items.forEach((namespace) => {
+      namespaces.push(namespace.metadata.name);
+    });
+  } catch (error) {
+    snackbarUtils.error(`[HTTP error]: ${error.message}`);
+    snackbarUtils.warning('Failed to fetch namespaces');
+  }
+  return namespaces;
+};
+
+export const getFlows = async (namespace, type) => {
+  const flows = [];
+  try {
+    let res;
+    if (type === 'Flow') {
+      res = await axios.get(`k8s/apis/logging.banzaicloud.io/v1beta1/namespaces/${namespace}/flows`);
+    } else if (type === 'ClusterFlow') {
+      res = await axios.get(`k8s/apis/logging.banzaicloud.io/v1beta1/namespaces/${namespace}/clusterflows`);
+    } else {
+      snackbarUtils.warning('Invalid flow type');
+      return flows;
+    }
+    res.data.items.forEach((flow) => {
+      flows.push(flow.metadata.name);
+    });
+  } catch (error) {
+    snackbarUtils.error(`[HTTP error]: ${error.message}`);
+    snackbarUtils.warning('Failed to fetch flows');
+  }
+  return flows;
 };
