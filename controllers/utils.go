@@ -9,6 +9,7 @@ import (
 	"time"
 
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	filters "github.com/banzaicloud/logging-operator/pkg/sdk/model/filter"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
 	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +31,14 @@ func flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTe
 			LocalOutputRefs: nil,
 			Match: []flowv1beta1.Match{{
 				Select: &flowv1beta1.Select{Labels: extraLabels},
+			}},
+			Filters: []flowv1beta1.Filter{{
+				Grep: &filters.GrepConfig{
+					Regexp: []filters.RegexpSection{{
+						Key:     "kubernetes",
+						Pattern: ".*loggingplumber.isala.me\\/flowtest-uuid.*",
+					}},
+				},
 			}},
 		},
 	}
@@ -73,6 +82,16 @@ func clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv
 			GlobalOutputRefs: nil,
 			Match: []flowv1beta1.ClusterMatch{{
 				ClusterSelect: &flowv1beta1.ClusterSelect{Labels: extraLabels},
+			}},
+			Filters: []flowv1beta1.Filter{{
+				Grep: &filters.GrepConfig{
+					Regexp: []filters.RegexpSection{{
+						// Make sure "loggingplumber.isala.me/flowtest-uuid" label is present
+						// To prevent data filter out logs from reference pod
+						Key:     "kubernetes",
+						Pattern: ".*loggingplumber.isala.me\\/flowtest-uuid.*",
+					}},
+				},
 			}},
 		},
 	}
