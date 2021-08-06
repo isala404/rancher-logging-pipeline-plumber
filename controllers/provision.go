@@ -70,7 +70,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 				// TODO: Handle more than or less than 1 Container (#12)
 				Name:            referencePod.Spec.Containers[0].Name,
 				ImagePullPolicy: v1.PullIfNotPresent,
-				Image:           "mrsupiri/pod-simulator:latest",
+				Image:           "supiri/pod-simulator:latest",
 				Args:            []string{"-log_file", "/simulation.log"},
 				VolumeMounts:    []v1.VolumeMount{{Name: "config-volume", MountPath: "/simulation.log", SubPath: "simulation.log"}},
 			}},
@@ -187,7 +187,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 
 			targetFlow.Spec.Match = nil
 
-			targetFlow.Spec.Filters = referenceFlow.Spec.Filters[:x]
+			targetFlow.Spec.Filters = append(targetFlow.Spec.Filters, referenceFlow.Spec.Filters[:x]...)
 
 			if err = r.Create(ctx, &targetOutput); err != nil {
 				logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
@@ -265,7 +265,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 
 			targetFlow.Spec.Match = nil
 
-			targetFlow.Spec.Filters = referenceFlow.Spec.Filters[:x]
+			targetFlow.Spec.Filters = append(targetFlow.Spec.Filters, referenceFlow.Spec.Filters[:x]...)
 
 			if err = r.Create(ctx, &targetOutput); err != nil {
 				logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
