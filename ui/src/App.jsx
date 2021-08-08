@@ -28,7 +28,7 @@ function App() {
             <Route path="/create">
               <CreateView />
             </Route>
-            <Route path="/flowtest/:uuid">
+            <Route path="/flowtest/:name">
               <DetailView />
             </Route>
           </Switch>
