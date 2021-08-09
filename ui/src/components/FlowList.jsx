@@ -69,7 +69,7 @@ export default function FlowList() {
         autoHeight
         disableExtendRowFullWidth
         onSelectionModelChange={getSelectedFlows}
-        onRowClick={(row) => history.push(`flowtest/${row.row.name}`)}
+        onRowClick={(row) => history.push(`flowtest/${row.row.namespace}/${row.row.name}`)}
       />
     </div>
   );
