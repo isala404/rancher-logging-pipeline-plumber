@@ -20,7 +20,9 @@ const ParseTextarea = ({
   const handleChange = (e) => {
     const newValue = e.target.value;
     setText(newValue);
-    onChange(newValue.split('\n'));
+    // Remove the last line if it's empty
+    // eslint-disable-next-line no-shadow
+    onChange(newValue.split('\n').filter((e) => e));
   };
 
   return <TextareaAutosize onChange={handleChange} value={text} style={{ height: '180px', width: '750px' }} required={required} />;

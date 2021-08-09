@@ -36,29 +36,14 @@ export default function DetailView() {
             </div>
             <div style={{ margin: '10px' }}>Reference Flow</div>
             <div style={{ marginLeft: '30px' }}>
-              <div>
-                Kind:
-                {flowTest?.spec.referenceFlow.kind}
-              </div>
-              <div>
-                Name:
-                {flowTest?.spec.referenceFlow.name}
-              </div>
-              <div>
-                Namespace:
-                {flowTest?.spec.referenceFlow.namespace}
-              </div>
+              <div>{`Kind: ${flowTest?.spec.referenceFlow.kind}`}</div>
+              <div>{`Namespace: ${flowTest?.spec.referenceFlow.namespace}`}</div>
+              <div>{`Name: ${flowTest?.spec.referenceFlow.name}`}</div>
             </div>
             <div style={{ margin: '10px' }}>Reference Pod</div>
             <div style={{ marginLeft: '30px' }}>
-              <div>
-                Name:
-                {flowTest?.spec.referencePod.name}
-              </div>
-              <div>
-                Namespace:
-                {flowTest?.spec.referencePod.namespace}
-              </div>
+              <div>{`Namespace: ${flowTest?.spec.referencePod.namespace}`}</div>
+              <div>{`Name: ${flowTest?.spec.referencePod.name}`}</div>
             </div>
             <div style={{ margin: '10px' }}>Testing Logs</div>
             <div style={{ marginLeft: '30px' }}>
@@ -70,18 +55,18 @@ export default function DetailView() {
             </div>
           </Grid>
           <Grid item xs={6}>
-            <div>Tested Matches</div>
-            <div style={{ marginLeft: '20px' }}>
+            <div style={{ margin: '10px' }}>Tested Matches</div>
+            <div style={{ marginLeft: '30px' }}>
               {flow?.spec?.match?.map((match, index) => (
-                <pre style={{ color: flowTest.status?.filterStatus[index] ? 'green' : 'red' }}>
+                <pre style={{ color: flowTest.status?.matchStatus[index] ? 'green' : 'red' }}>
                   { YAML.stringify(match) }
                 </pre>
               ))}
             </div>
-            <div>Tested Filters</div>
-            <div style={{ marginLeft: '20px' }}>
+            <div style={{ margin: '10px' }}>Tested Filters</div>
+            <div style={{ marginLeft: '30px' }}>
               {flow?.spec?.filters?.map((filter, index) => (
-                <pre style={{ color: flowTest.status?.matchStatus[index] ? 'green' : 'red' }}>
+                <pre style={{ color: flowTest.status?.filterStatus[index] ? 'green' : 'red' }}>
                   { YAML.stringify(filter) }
                 </pre>
               ))}
