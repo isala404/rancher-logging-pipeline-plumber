@@ -58,10 +58,21 @@ func main() {
 	var enableLeaderElection bool
 	var probeAddr string
 	var webAddr string
+	var podSimulator controllers.Image
+	var logOutput controllers.Image
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&webAddr, "web-addr", ":9090", "The address the frontend API endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+
+	flag.StringVar(&podSimulator.Repository, "pod-simulator-repository", "supiri/pod-simulator", "container image URI for pod simulator")
+	flag.StringVar(&podSimulator.Tag, "pod-simulator-tag", "latest", "pod simulator container tag")
+	flag.StringVar(&podSimulator.PullPolicy, "pod-simulator-pull-policy", "IfNotPresent", "pull policy pod simulator container")
+
+	flag.StringVar(&logOutput.Repository, "log-output-repository", "paynejacob/log-output", "container image URI for log-output")
+	flag.StringVar(&logOutput.Tag, "log-output-tag", "latest", "log-output container tag")
+	flag.StringVar(&logOutput.PullPolicy, "log-output-pull-policy", "IfNotPresent", "pull policy log-output container")
+
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -87,8 +98,10 @@ func main() {
 	}
 
 	if err = (&controllers.FlowTestReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		PodSimulatorImage: podSimulator,
+		LogOutputImage:    logOutput,
+		Client:            mgr.GetClient(),
+		Scheme:            mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "FlowTest")
 		os.Exit(1)

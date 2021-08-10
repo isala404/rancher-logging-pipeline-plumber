@@ -10,6 +10,16 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 
+logOutput:
+  repository: paynejacob/log-output
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+podSimulator:
+  repository: supiri/pod-simulator
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

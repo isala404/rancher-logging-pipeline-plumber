@@ -69,8 +69,8 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 			Containers: []v1.Container{{
 				// TODO: Handle more than or less than 1 Container (#12)
 				Name:            referencePod.Spec.Containers[0].Name,
-				ImagePullPolicy: v1.PullIfNotPresent,
-				Image:           "supiri/pod-simulator:latest",
+				Image:           fmt.Sprintf("%s:%s", r.PodSimulatorImage.Repository, r.PodSimulatorImage.Tag),
+				ImagePullPolicy: v1.PullPolicy(r.PodSimulatorImage.PullPolicy),
 				Args:            []string{"-log_file", "/simulation.log"},
 				VolumeMounts:    []v1.VolumeMount{{Name: "config-volume", MountPath: "/simulation.log", SubPath: "simulation.log"}},
 			}},
@@ -305,8 +305,8 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{{
 						Name:            "log-output",
-						Image:           "paynejacob/log-output:latest",
-						ImagePullPolicy: v1.PullIfNotPresent,
+						Image:           fmt.Sprintf("%s:%s", r.LogOutputImage.Repository, r.LogOutputImage.Tag),
+						ImagePullPolicy: v1.PullPolicy(r.LogOutputImage.PullPolicy),
 						Ports: []v1.ContainerPort{{
 							Name:          "http",
 							ContainerPort: 80,

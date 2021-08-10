@@ -33,6 +33,14 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          args: [
+            "-pod-simulator-repository={{ .Values.podSimulator.repository }}",
+            "-pod-simulator-tag={{ .Values.podSimulator.tag }}",
+            "-pod-simulator-pull-policy={{ .Values.podSimulator.pullPolicy }}",
+            "-log-output-repository={{ .Values.logOutput.repository }}",
+            "-log-output-tag={{ .Values.logOutput.tag }}",
+            "-log-output-pull-policy={{ .Values.logOutput.pullPolicy }}",
+          ]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http

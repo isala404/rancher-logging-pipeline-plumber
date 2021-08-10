@@ -144,6 +144,12 @@ type Index struct {
 	LogCount int       `json:"log_count"`
 }
 
+type Image struct {
+	Repository string
+	Tag        string
+	PullPolicy string
+}
+
 // https://stackoverflow.com/a/40326580
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {

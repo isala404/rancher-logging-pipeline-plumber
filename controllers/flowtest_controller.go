@@ -34,6 +34,8 @@ import (
 
 // FlowTestReconciler reconciles a FlowTest object
 type FlowTestReconciler struct {
+	PodSimulatorImage Image
+	LogOutputImage    Image
 	client.Client
 	Scheme *runtime.Scheme
 }
