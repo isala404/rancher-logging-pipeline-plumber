@@ -1,13 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Grid, Paper } from '@material-ui/core';
+import {
+  Container, Grid, Paper, Tooltip,
+} from '@material-ui/core';
 import { useParams } from 'react-router-dom';
 import YAML from 'json-to-pretty-yaml';
-import { getFlow, getFlowTest, cleanFlowTest } from '../utils/flowtests/flowDetails';
+import { getFlow, getFlowTest } from '../utils/flowtests/flowDetails';
 
 export default function DetailView() {
   const { namespace, name } = useParams();
   const [flowTest, setFlowTest] = useState(undefined);
   const [flow, setFlow] = useState(undefined);
+
+  const matchPassingText = 'Logs pass though to the output when the match statement is present';
+  const matchFailingText = 'This match statement blocks logs from passing to output';
+  const filterPassingText = 'Logs pass though to the Output when the filter statement is present';
+  const filterFailingText = 'This filter statement blocks logs from passing to output';
 
   useEffect(async () => {
     if (flowTest?.spec?.referenceFlow) {
@@ -58,29 +65,33 @@ export default function DetailView() {
             <div style={{ margin: '10px' }}>Tested Matches</div>
             <div style={{ marginLeft: '30px' }}>
               {flow?.spec?.match?.map((match, index) => (
-                <pre style={{ color: flowTest.status?.matchStatus[index] ? 'green' : 'red' }}>
-                  { YAML.stringify(match) }
-                </pre>
+                <Tooltip
+                  placement="bottom-start"
+                  title={flowTest.status?.matchStatus[index] ? matchPassingText : matchFailingText}
+                >
+                  <pre style={{ color: flowTest.status?.matchStatus[index] ? 'green' : 'red' }}>
+                    { YAML.stringify(match) }
+                  </pre>
+                </Tooltip>
               ))}
             </div>
             <div style={{ margin: '10px' }}>Tested Filters</div>
             <div style={{ marginLeft: '30px' }}>
               {flow?.spec?.filters?.map((filter, index) => (
-                <pre style={{ color: flowTest.status?.filterStatus[index] ? 'green' : 'red' }}>
-                  { YAML.stringify(filter) }
-                </pre>
+                <Tooltip
+                  placement="bottom-start"
+                  title={
+                    flowTest.status?.filterStatus[index] ? filterPassingText : filterFailingText
+                  }
+                >
+                  <pre style={{ color: flowTest.status?.filterStatus[index] ? 'green' : 'red' }}>
+                    { YAML.stringify(filter) }
+                  </pre>
+                </Tooltip>
               ))}
             </div>
           </Grid>
         </Grid>
-      </Paper>
-      <h3 style={{ marginTop: '50px' }}>YAML Config</h3>
-      <Paper>
-        <pre style={{ margin: '10px', padding: '20px' }}>
-          <code className="language-yaml">
-            {YAML.stringify(cleanFlowTest(flowTest))}
-          </code>
-        </pre>
       </Paper>
     </Container>
   );
