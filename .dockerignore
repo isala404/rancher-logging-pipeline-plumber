@@ -5,6 +5,6 @@
 !**/*.sum
 charts/*
 bin/*
-ui/*
+ui/node_modules/*
 pod-simulator/*
 dist/*

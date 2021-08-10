@@ -1,3 +1,14 @@
+FROM node:alpine as uibuild
+RUN apk add --no-cache yarn
+
+WORKDIR /workspace
+
+COPY ui/package.json .
+RUN yarn install --no-lockfile --silent --cache-folder .yc
+
+COPY ui/ .
+RUN yarn build
+
 # Build the manager binary
 FROM golang:1.16 as builder
 
@@ -13,6 +24,9 @@ RUN go mod download
 COPY main.go main.go
 COPY pkg/ pkg/
 COPY controllers/ controllers/
+
+# Copy UI build
+COPY --from=uibuild /workspace/build/ pkg/webserver/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
