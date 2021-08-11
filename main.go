@@ -58,20 +58,20 @@ func main() {
 	var enableLeaderElection bool
 	var probeAddr string
 	var webAddr string
-	var podSimulator controllers.Image
-	var logOutput controllers.Image
+	var podSimulatorImage controllers.Image
+	var logOutputImage controllers.Image
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&webAddr, "web-addr", ":9090", "The address the frontend API endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 
-	flag.StringVar(&podSimulator.Repository, "pod-simulator-repository", "supiri/pod-simulator", "container image URI for pod simulator")
-	flag.StringVar(&podSimulator.Tag, "pod-simulator-tag", "latest", "pod simulator container tag")
-	flag.StringVar(&podSimulator.PullPolicy, "pod-simulator-pull-policy", "IfNotPresent", "pull policy pod simulator container")
+	flag.StringVar(&podSimulatorImage.Repository, "pod-simulator-image-repository", "supiri/pod-simulator", "container image URI for pod simulator")
+	flag.StringVar(&podSimulatorImage.Tag, "pod-simulator-image-tag", "latest", "pod simulator container tag")
+	flag.StringVar(&podSimulatorImage.PullPolicy, "pod-simulator-image-pull-policy", "IfNotPresent", "pull policy pod simulator container")
 
-	flag.StringVar(&logOutput.Repository, "log-output-repository", "paynejacob/log-output", "container image URI for log-output")
-	flag.StringVar(&logOutput.Tag, "log-output-tag", "latest", "log-output container tag")
-	flag.StringVar(&logOutput.PullPolicy, "log-output-pull-policy", "IfNotPresent", "pull policy log-output container")
+	flag.StringVar(&logOutputImage.Repository, "log-output-image-repository", "paynejacob/log-output", "container image URI for log-output")
+	flag.StringVar(&logOutputImage.Tag, "log-output-image-tag", "latest", "log-output container tag")
+	flag.StringVar(&logOutputImage.PullPolicy, "log-output-image-pull-policy", "IfNotPresent", "pull policy log-output container")
 
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
@@ -98,8 +98,8 @@ func main() {
 	}
 
 	if err = (&controllers.FlowTestReconciler{
-		PodSimulatorImage: podSimulator,
-		LogOutputImage:    logOutput,
+		PodSimulatorImage: podSimulatorImage,
+		LogOutputImage:    logOutputImage,
 		Client:            mgr.GetClient(),
 		Scheme:            mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {

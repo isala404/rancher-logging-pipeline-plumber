@@ -34,12 +34,12 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           args: [
-            "-pod-simulator-repository={{ .Values.podSimulator.repository }}",
-            "-pod-simulator-tag={{ .Values.podSimulator.tag }}",
-            "-pod-simulator-pull-policy={{ .Values.podSimulator.pullPolicy }}",
-            "-log-output-repository={{ .Values.logOutput.repository }}",
-            "-log-output-tag={{ .Values.logOutput.tag }}",
-            "-log-output-pull-policy={{ .Values.logOutput.pullPolicy }}",
+            "-pod-simulator-image-repository={{ .Values.podSimulatorImage.repository }}",
+            "-pod-simulator-image-tag={{ .Values.podSimulatorImage.tag }}",
+            "-pod-simulator-image-pull-policy={{ .Values.podSimulatorImage.pullPolicy }}",
+            "-log-output-image-repository={{ .Values.logOutputImage.repository }}",
+            "-log-output-image-tag={{ .Values.logOutputImage.tag }}",
+            "-log-output-image-pull-policy={{ .Values.logOutputImage.pullPolicy }}",
           ]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
