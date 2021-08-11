@@ -11,34 +11,20 @@ const TestStatus = ({
       {`Tested ${type}`}
     </div>
     <Grid container style={{ marginLeft: '30px' }}>
-      <Grid item xs={12} md={6}>
-        Passing
+      <Grid item xs={12}>
         <div>
-          {tests?.map((match, index) => {
-            if (status[index]) {
-              return (
-                <pre style={{ color: 'green' }}>
-                  { YAML.stringify(match) }
-                </pre>
-              );
-            }
-            return null;
-          })}
-        </div>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        Failing
-        <div>
-          {tests?.map((match, index) => {
-            if (!status[index]) {
-              return (
-                <pre style={{ color: 'red' }}>
-                  { YAML.stringify(match) }
-                </pre>
-              );
-            }
-            return null;
-          })}
+          {tests?.map((match, index) => (
+            <div style={{ display: 'table' }}>
+              {
+                status[index]
+                  ? <div className="badge-wrapper"><span className="badge badge-pass">Pass</span></div>
+                  : <div className="badge-wrapper"><span className="badge badge-fail">Fail</span></div>
+              }
+              <pre style={{ display: 'inline-block', color: status[index] ? 'green' : 'red' }}>
+                { YAML.stringify(match) }
+              </pre>
+            </div>
+          ))}
         </div>
       </Grid>
     </Grid>
