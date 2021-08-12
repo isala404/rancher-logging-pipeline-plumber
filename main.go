@@ -65,7 +65,7 @@ func main() {
 	flag.StringVar(&webAddr, "web-addr", ":9090", "The address the frontend API endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 
-	flag.StringVar(&podSimulatorImage.Repository, "pod-simulator-image-repository", "supiri/pod-simulator", "container image URI for pod simulator")
+	flag.StringVar(&podSimulatorImage.Repository, "pod-simulator-image-repository", "ghcr.io/mrsupiri/rancher-logging-pipeline-plumber/pod-simulator", "container image URI for pod simulator")
 	flag.StringVar(&podSimulatorImage.Tag, "pod-simulator-image-tag", "latest", "pod simulator container tag")
 	flag.StringVar(&podSimulatorImage.PullPolicy, "pod-simulator-image-pull-policy", "IfNotPresent", "pull policy pod simulator container")
 
