@@ -2,6 +2,7 @@
 
 GITHUB_REF=${GITHUB_REF##*/}
 GITHUB_REF=${GITHUB_REF:=local}
+CHART_VERSION=100.100.100-dev
 
 # ensure we have a lowercase name
 GITHUB_REPOSITORY=$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')
@@ -15,14 +16,15 @@ SIMULATOR_IMAGE_NAME=ghcr.io/$GITHUB_REPOSITORY/pod-simulator
 if git describe --exact-match --tags > /dev/null 2>&1 ; then
     VERSION=$(git describe --exact-match --tags | tr '[:upper:]' '[:lower:]')
     IMAGE_TAG=$(git describe --exact-match --tags | tr '[:upper:]' '[:lower:]')
+    CHART_VERSION=$(git describe --exact-match --tags | tr '[:upper:]' '[:lower:]' | sed s/^v// )
 # if this is not a tag use the branch name and commit hash
 else
-    VERSION=dev-$(git log --oneline -n 1 | cut -d" " -f1 | tr '[:upper:]' '[:lower:]')
+    VERSION=$(git log --oneline -n 1 | cut -d" " -f1 | tr '[:upper:]' '[:lower:]')-dev
     IMAGE_TAG=$GITHUB_REF-head
 fi
 
 # if this is an rc it is a prerelease
-if [[ "$VERSION" =~ -rc\d+$ ]]; then
+if [[ "$VERSION" =~ -[rc|a]\d+$ ]]; then
   IS_PRERELEASE=true
 fi
 
@@ -33,6 +35,7 @@ if [ "$GITHUB_ACTIONS" = true ] ; then
   echo "IS_PRERELEASE=$IS_PRERELEASE" >> $GITHUB_ENV
   echo "VERSION=$VERSION" >> $GITHUB_ENV
   echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+  echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
 fi
 
 
@@ -41,9 +44,11 @@ export SIMULATOR_IMAGE_NAME=$SIMULATOR_IMAGE_NAME
 export IS_PRERELEASE=$IS_PRERELEASE
 export VERSION=$VERSION
 export IMAGE_TAG=$IMAGE_TAG
+export CHART_VERSION=$CHART_VERSION
 
 echo "IS_PRERELEASE: $IS_PRERELEASE"
 echo "CONTROLLER_IMAGE_NAME: $CONTROLLER_IMAGE_NAME"
 echo "SIMULATOR_IMAGE_NAME: $SIMULATOR_IMAGE_NAME"
 echo "VERSION: $VERSION"
 echo "IMAGE_TAG: $IMAGE_TAG"
+echo "CHART_VERSION: $CHART_VERSION"

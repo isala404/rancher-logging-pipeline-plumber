@@ -1,11 +1,14 @@
 #!/bin/bash
 
-docker build -t $CONTROLLER_IMAGE_NAME:$VERSION . || exit 1
-docker image tag $CONTROLLER_IMAGE_NAME:$VERSION $CONTROLLER_IMAGE_NAME:$IMAGE_TAG || exit 1
+docker build -t "$CONTROLLER_IMAGE_NAME":"$VERSION" . || exit 1
+docker image tag "$CONTROLLER_IMAGE_NAME":"$VERSION" "$CONTROLLER_IMAGE_NAME":"$IMAGE_TAG" || exit 1
 
-pushd pod-simulator
-    docker build -t $SIMULATOR_IMAGE_NAME:$VERSION .  || exit 1
-    docker image tag $SIMULATOR_IMAGE_NAME:$VERSION $SIMULATOR_IMAGE_NAME:$IMAGE_TAG || exit 1
-popd
+pushd pod-simulator || exit
+    docker build -t "$SIMULATOR_IMAGE_NAME":"$VERSION" .  || exit 1
+    docker image tag "$SIMULATOR_IMAGE_NAME":"$VERSION" "$SIMULATOR_IMAGE_NAME":"$IMAGE_TAG" || exit 1
+popd || exit
+
+yq w charts/logging-pipeline-plumber/Chart.yaml version "$CHART_VERSION"
+yq w charts/logging-pipeline-plumber/Chart.yaml appVersion v"$CHART_VERSION"
 
 helm package charts/logging-pipeline-plumber -d dist/
