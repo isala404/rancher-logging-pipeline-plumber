@@ -67,6 +67,9 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, err
 			}
+			if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
+				return ctrl.Result{}, err
+			}
 		} else {
 			logger.Error(err, "failed to get the flowtest")
 		}
