@@ -34,6 +34,7 @@ import (
 
 // FlowTestReconciler reconciles a FlowTest object
 type FlowTestReconciler struct {
+	Namespace string
 	PodSimulatorImage Image
 	LogOutputImage    Image
 	client.Client
@@ -151,7 +152,7 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 		}
 
 		for _, flow := range flows.Items {
-			passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
+			passing, err := r.checkIndex(ctx, flow.ObjectMeta.Name)
 			if err != nil {
 				return err
 			}
@@ -182,7 +183,7 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 				return err
 			}
 
-			passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
+			passing, err := r.checkIndex(ctx, flow.ObjectMeta.Name)
 			if err != nil {
 				return err
 			}

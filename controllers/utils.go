@@ -16,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.Flow, flowv1beta1.Output) {
+func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.Flow, flowv1beta1.Output) {
 	flowTemplate := flowv1beta1.Flow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -55,7 +55,7 @@ func flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTe
 		},
 		Spec: flowv1beta1.OutputSpec{
 			HTTPOutput: &output.HTTPOutputConfig{
-				Endpoint: "http://logging-plumber-log-aggregator.default.svc",
+				Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc/", r.Namespace),
 				Buffer: &output.Buffer{
 					FlushMode:     "interval",
 					FlushInterval: "10s",
@@ -67,7 +67,7 @@ func flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTe
 	return flowTemplate, outTemplate
 }
 
-func clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.ClusterFlow, flowv1beta1.ClusterOutput) {
+func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.ClusterFlow, flowv1beta1.ClusterOutput) {
 	flowTemplate := flowv1beta1.ClusterFlow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -109,7 +109,7 @@ func clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv
 		Spec: flowv1beta1.ClusterOutputSpec{
 			OutputSpec: flowv1beta1.OutputSpec{
 				HTTPOutput: &output.HTTPOutputConfig{
-					Endpoint: "http://logging-plumber-log-aggregator.default.svc",
+					Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc/", r.Namespace),
 					Buffer: &output.Buffer{
 						FlushMode:     "interval",
 						FlushInterval: "10s",
@@ -158,13 +158,13 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func CheckIndex(ctx context.Context, indexName string) (bool, error) {
+func (r *FlowTestReconciler) checkIndex(ctx context.Context, indexName string) (bool, error) {
 	logger := log.FromContext(ctx)
 
 	client := &http.Client{}
 
 	// NOTE: When developing this requires port-forward because controller is running locally
-	req, err := http.NewRequest("GET", getEnv("LOG_OUTPUT_ENDPOINT", "http://logging-plumber-log-aggregator.default.svc/"), nil)
+	req, err := http.NewRequest("GET", getEnv("LOG_OUTPUT_ENDPOINT", fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc/", r.Namespace)), nil)
 	if err != nil {
 		logger.Error(err, "failed to create request for checking indexes")
 		return false, err

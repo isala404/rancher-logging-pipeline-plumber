@@ -138,7 +138,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 		flowTest.Status.FilterStatus = make([]bool, len(referenceFlow.Spec.Filters))
 
 		i := 0
-		flowTemplate, outTemplate := clusterFlowTemplates(referenceFlow, *flowTest, extraLabels)
+		flowTemplate, outTemplate := r.clusterFlowTemplates(referenceFlow, *flowTest, extraLabels)
 		for x := 1; x <= len(referenceFlow.Spec.Match); x++ {
 			targetFlow := *flowTemplate.DeepCopy()
 			targetOutput := *outTemplate.DeepCopy()
@@ -215,7 +215,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 		flowTest.Status.FilterStatus = make([]bool, len(referenceFlow.Spec.Filters))
 
 		i := 0
-		flowTemplate, outTemplate := flowTemplates(referenceFlow, *flowTest, extraLabels)
+		flowTemplate, outTemplate := r.flowTemplates(referenceFlow, *flowTest, extraLabels)
 
 		for x := 1; x <= len(referenceFlow.Spec.Match); x++ {
 			targetFlow := *flowTemplate.DeepCopy()
@@ -298,7 +298,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "logging-plumber-log-aggregator",
-					Namespace: flowTest.ObjectMeta.Namespace,
+					Namespace: r.Namespace,
 					Labels: GetLabels("logging-plumber-log-aggregator", nil,
 						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
 				},
@@ -321,14 +321,14 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 			}
 			logger.V(1).Info("deployed log output pod", "pod-uuid", outputPod.UID)
 
-			simulationPodSVC := v1.Service{
+			outputPodSVC := v1.Service{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "V1",
 					Kind:       "Service",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "logging-plumber-log-aggregator",
-					Namespace: flowTest.Spec.ReferencePod.Namespace,
+					Namespace: r.Namespace,
 					Labels: GetLabels("logging-plumber-log-aggregator", nil,
 						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
 				},
@@ -343,7 +343,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 				},
 			}
 
-			if err := r.Create(ctx, &simulationPodSVC); err != nil {
+			if err := r.Create(ctx, &outputPodSVC); err != nil {
 				if apierrors.IsAlreadyExists(err) {
 					logger.V(1).Info("found a already deployed log output service")
 				}
@@ -351,7 +351,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 				return err
 			}
 
-			logger.V(1).Info("deployed output pod service", "service-uuid", simulationPodSVC.UID)
+			logger.V(1).Info("deployed output pod service", "service-uuid", outputPodSVC.UID)
 		}
 	} else {
 		logger.V(1).Info("found a already deployed log output pod", "pod-uuid", outputPod.UID)

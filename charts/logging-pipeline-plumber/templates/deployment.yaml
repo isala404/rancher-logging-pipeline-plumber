@@ -34,6 +34,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           args: [
+            "-release-namespace={{ .Release.Name }}",
             "-pod-simulator-image-repository={{ .Values.podSimulatorImage.repository }}",
             "-pod-simulator-image-tag={{ .Values.podSimulatorImage.tag }}",
             "-pod-simulator-image-pull-policy={{ .Values.podSimulatorImage.pullPolicy }}",
