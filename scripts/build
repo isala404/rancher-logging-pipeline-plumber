@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export DOCKER_BUILDKIT=1
+
 docker build -t "$CONTROLLER_IMAGE_NAME":"$VERSION" . || exit 1
 docker image tag "$CONTROLLER_IMAGE_NAME":"$VERSION" "$CONTROLLER_IMAGE_NAME":"$IMAGE_TAG" || exit 1
 
