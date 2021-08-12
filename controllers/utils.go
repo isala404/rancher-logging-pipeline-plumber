@@ -55,7 +55,7 @@ func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggi
 		},
 		Spec: flowv1beta1.OutputSpec{
 			HTTPOutput: &output.HTTPOutputConfig{
-				Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc", r.Namespace),
+				Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc", r.AggregatorNamespace),
 				Buffer: &output.Buffer{
 					FlushMode:     "interval",
 					FlushInterval: "10s",
@@ -109,7 +109,7 @@ func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, 
 		Spec: flowv1beta1.ClusterOutputSpec{
 			OutputSpec: flowv1beta1.OutputSpec{
 				HTTPOutput: &output.HTTPOutputConfig{
-					Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc", r.Namespace),
+					Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc", r.AggregatorNamespace),
 					Buffer: &output.Buffer{
 						FlushMode:     "interval",
 						FlushInterval: "10s",
@@ -164,7 +164,7 @@ func (r *FlowTestReconciler) checkIndex(ctx context.Context, indexName string) (
 	client := &http.Client{}
 
 	// NOTE: When developing this requires port-forward because controller is running locally
-	req, err := http.NewRequest("GET", getEnv("LOG_OUTPUT_ENDPOINT", fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc/", r.Namespace)), nil)
+	req, err := http.NewRequest("GET", getEnv("LOG_OUTPUT_ENDPOINT", fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc/", r.AggregatorNamespace)), nil)
 	if err != nil {
 		logger.Error(err, "failed to create request for checking indexes")
 		return false, err

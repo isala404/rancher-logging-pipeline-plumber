@@ -298,7 +298,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "logging-plumber-log-aggregator",
-					Namespace: r.Namespace,
+					Namespace: r.AggregatorNamespace,
 					Labels: GetLabels("logging-plumber-log-aggregator", nil,
 						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
 				},
@@ -332,7 +332,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "logging-plumber-log-aggregator",
-					Namespace: r.Namespace,
+					Namespace: r.AggregatorNamespace,
 					Labels: GetLabels("logging-plumber-log-aggregator", nil,
 						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
 				},
