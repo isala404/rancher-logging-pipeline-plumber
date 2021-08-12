@@ -60,10 +60,13 @@ func main() {
 	var webAddr string
 	var podSimulatorImage controllers.Image
 	var logOutputImage controllers.Image
+	var aggregatorNamespace string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&webAddr, "web-addr", ":9090", "The address the frontend API endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+
+	flag.StringVar(&aggregatorNamespace, "aggregator-namespace", "default", "AggregatorNamespace where the log aggregator was installed to.")
 
 	flag.StringVar(&podSimulatorImage.Repository, "pod-simulator-image-repository", "ghcr.io/mrsupiri/rancher-logging-pipeline-plumber/pod-simulator", "container image URI for pod simulator")
 	flag.StringVar(&podSimulatorImage.Tag, "pod-simulator-image-tag", "latest", "pod simulator container tag")
@@ -98,10 +101,11 @@ func main() {
 	}
 
 	if err = (&controllers.FlowTestReconciler{
-		PodSimulatorImage: podSimulatorImage,
-		LogOutputImage:    logOutputImage,
-		Client:            mgr.GetClient(),
-		Scheme:            mgr.GetScheme(),
+		AggregatorNamespace: aggregatorNamespace,
+		PodSimulatorImage:   podSimulatorImage,
+		LogOutputImage:      logOutputImage,
+		Client:              mgr.GetClient(),
+		Scheme:              mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "FlowTest")
 		os.Exit(1)

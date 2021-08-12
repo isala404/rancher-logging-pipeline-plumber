@@ -34,8 +34,9 @@ import (
 
 // FlowTestReconciler reconciles a FlowTest object
 type FlowTestReconciler struct {
-	PodSimulatorImage Image
-	LogOutputImage    Image
+	AggregatorNamespace string
+	PodSimulatorImage   Image
+	LogOutputImage      Image
 	client.Client
 	Scheme *runtime.Scheme
 }
@@ -64,6 +65,9 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil {
 		if apierrors.IsNotFound(err) {
 			if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
+				return ctrl.Result{}, err
+			}
+			if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, err
 			}
 		} else {
@@ -151,7 +155,7 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 		}
 
 		for _, flow := range flows.Items {
-			passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
+			passing, err := r.checkIndex(ctx, flow.ObjectMeta.Name)
 			if err != nil {
 				return err
 			}
@@ -182,7 +186,7 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 				return err
 			}
 
-			passing, err := CheckIndex(ctx, flow.ObjectMeta.Name)
+			passing, err := r.checkIndex(ctx, flow.ObjectMeta.Name)
 			if err != nil {
 				return err
 			}
