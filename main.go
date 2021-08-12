@@ -67,7 +67,7 @@ func main() {
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 
 	flag.StringVar(&aggregatorNamespace, "aggregator-namespace", "default", "AggregatorNamespace where the log aggregator was installed to.")
-  
+
 	flag.StringVar(&podSimulatorImage.Repository, "pod-simulator-image-repository", "ghcr.io/mrsupiri/rancher-logging-pipeline-plumber/pod-simulator", "container image URI for pod simulator")
 	flag.StringVar(&podSimulatorImage.Tag, "pod-simulator-image-tag", "latest", "pod simulator container tag")
 	flag.StringVar(&podSimulatorImage.PullPolicy, "pod-simulator-image-pull-policy", "IfNotPresent", "pull policy pod simulator container")
