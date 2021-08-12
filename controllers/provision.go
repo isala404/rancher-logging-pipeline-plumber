@@ -316,8 +316,12 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 				},
 			}
 			if err := r.Create(ctx, &outputPod); err != nil {
-				logger.Error(err, "failed to create the log output pod")
-				return err
+				if apierrors.IsAlreadyExists(err) {
+					logger.V(1).Info("found a already deployed log output pod")
+				} else {
+					logger.Error(err, "failed to create the output pod pod")
+					return err
+				}
 			}
 			logger.V(1).Info("deployed log output pod", "pod-uuid", outputPod.UID)
 
@@ -346,9 +350,10 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 			if err := r.Create(ctx, &outputPodSVC); err != nil {
 				if apierrors.IsAlreadyExists(err) {
 					logger.V(1).Info("found a already deployed log output service")
+				} else {
+					logger.Error(err, "failed to create the output pod service")
+					return err
 				}
-				logger.Error(err, "failed to create the output pod service")
-				return err
 			}
 
 			logger.V(1).Info("deployed output pod service", "service-uuid", outputPodSVC.UID)

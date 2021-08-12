@@ -34,7 +34,7 @@ import (
 
 // FlowTestReconciler reconciles a FlowTest object
 type FlowTestReconciler struct {
-	Namespace string
+	Namespace         string
 	PodSimulatorImage Image
 	LogOutputImage    Image
 	client.Client
