@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: supiri/logging-pipeline-plumber
+  repository: ghcr.io/mrsupiri/rancher-logging-pipeline-plumber
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: ""
 
 logOutputImage:
   repository: paynejacob/log-output
@@ -16,9 +16,9 @@ logOutputImage:
   tag: "latest"
 
 podSimulatorImage:
-  repository: supiri/pod-simulator
+  repository: ghcr.io/mrsupiri/rancher-logging-pipeline-plumber/pod-simulator
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
