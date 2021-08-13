@@ -28,7 +28,7 @@ function App() {
             <Route path="/create">
               <CreateView />
             </Route>
-            <Route path="/flowtest/:namespace/:name">
+            <Route path="/flowtest">
               <DetailView />
             </Route>
           </Switch>
