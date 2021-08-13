@@ -2,14 +2,21 @@ import React, { useEffect, useState } from 'react';
 import {
   Container, Grid, Paper,
 } from '@material-ui/core';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { getFlow, getFlowTest } from '../utils/flowtests/flowDetails';
 import TestStatus from '../components/TestStatus';
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 export default function DetailView() {
-  const { namespace, name } = useParams();
+  const query = useQuery();
   const [flowTest, setFlowTest] = useState(undefined);
   const [flow, setFlow] = useState(undefined);
+
+  const name = query.get('name');
+  const namespace = query.get('namespace');
 
   useEffect(async () => {
     if (flowTest?.spec?.referenceFlow) {
@@ -38,19 +45,19 @@ export default function DetailView() {
             </div>
             <div style={{ margin: '10px' }}>Reference Flow</div>
             <div style={{ marginLeft: '30px' }}>
-              <div>{`Kind: ${flowTest?.spec.referenceFlow.kind}`}</div>
-              <div>{`Namespace: ${flowTest?.spec.referenceFlow.namespace}`}</div>
-              <div>{`Name: ${flowTest?.spec.referenceFlow.name}`}</div>
+              <div>{`Kind: ${flowTest?.spec?.referenceFlow?.kind}`}</div>
+              <div>{`Namespace: ${flowTest?.spec?.referenceFlow?.namespace}`}</div>
+              <div>{`Name: ${flowTest?.spec?.referenceFlow?.name}`}</div>
             </div>
             <div style={{ margin: '10px' }}>Reference Pod</div>
             <div style={{ marginLeft: '30px' }}>
-              <div>{`Namespace: ${flowTest?.spec.referencePod.namespace}`}</div>
-              <div>{`Name: ${flowTest?.spec.referencePod.name}`}</div>
+              <div>{`Namespace: ${flowTest?.spec?.referencePod?.namespace}`}</div>
+              <div>{`Name: ${flowTest?.spec?.referencePod?.name}`}</div>
             </div>
             <div style={{ margin: '10px' }}>Testing Logs</div>
             <div style={{ marginLeft: '30px' }}>
               {flowTest?.spec?.sentMessages?.map((message) => (
-                <pre>
+                <pre key={message}>
                   { message }
                 </pre>
               ))}

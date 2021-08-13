@@ -14,7 +14,7 @@ const TestStatus = ({
       <Grid item xs={12}>
         <div>
           {tests?.map((match, index) => (
-            <div style={{ display: 'table' }}>
+            <div key={YAML.stringify(match)} style={{ display: 'table' }}>
               {
                 status[index]
                   ? <div className="badge-wrapper"><span className="badge badge-pass">Pass</span></div>

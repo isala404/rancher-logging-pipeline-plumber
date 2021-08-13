@@ -26,7 +26,7 @@ COPY pkg/ pkg/
 COPY controllers/ controllers/
 
 # Copy UI build
-COPY --from=uibuild /workspace/build/* pkg/webserver/build/
+COPY --from=uibuild /workspace/build/ pkg/webserver/build/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
