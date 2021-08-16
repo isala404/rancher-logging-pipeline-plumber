@@ -3,7 +3,13 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/MrSupiri/rancher-logging-pipeline-plumber)](https://goreportcard.com/report/github.com/MrSupiri/rancher-logging-pipeline-plumber)
 
-This a tool which can be used to debug logging piplines built using [Rancher Logging](https://rancher.com/docs/rancher/v2.5/en/logging/).
+This a tool which can be used to debug logging piplines built using [Rancher Logging](https://rancher.com/docs/rancher/v2.5/en/logging/). Onces installed users are able to chioice a Flow or ClusterFlow along with pod to simulate and users also can set the log messages that are emited by the pod. 
+
+
+Then operator will slice the target flow into `N` permutations where `N` equals number of Select and Filter statements present in the selected Flow. Then it will schedule a [output](https://banzaicloud.com/docs/one-eye/logging-operator/configuration/output/) for each Flow and if atleast one log statemnt get passed to output operator take all the selete or filters in that specific flow and mark the as passing and that flow will be deleted to save resources.
+
+
+When test hits the timeout (default: 5mins), operator will cleanup all the provisioned resources and users are able to see which Match or Filter statements are preventing logs from getting to their respective destinations.
 
 
 ## Get started
@@ -45,6 +51,7 @@ kubectl port-forward svc/logging-pipeline-plumber 9090:9090
 - [Yarn](https://yarnpkg.com/)
 - [Docker](https://www.docker.com/)
 - [Helm](https://helm.sh/)
+- [Yq](https://github.com/mikefarah/yq/)
 - A Cluster with [Rancher](https://rancher.com/docs/rancher/v2.5/en/installation/install-rancher-on-k8s/) installed ([k3d](https://k3d.io/)  is prefered)
 
 
