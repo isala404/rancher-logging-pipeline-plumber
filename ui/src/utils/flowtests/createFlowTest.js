@@ -30,10 +30,12 @@ export async function createFlowTest(data) {
     if (res.status === 201) {
       snackbarUtils.success('FlowTest Created');
     }
+    return true;
   } catch (error) {
     snackbarUtils.error(`[HTTP error]: ${error.message}`);
     snackbarUtils.warning('Failed to create flowtest');
   }
+  return false;
 }
 
 export const getPods = async (namespace) => {
