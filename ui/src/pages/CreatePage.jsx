@@ -29,7 +29,7 @@ export default function CreateView() {
   const onSubmit = async (data) => {
     const created = await createFlowTest(data);
     if (created) {
-      setTimeout(() => { history.push('/'); }, 500);
+      setTimeout(() => { history.push('/'); }, 700);
     }
   };
 

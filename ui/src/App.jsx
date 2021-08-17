@@ -14,6 +14,10 @@ import DetailView from './pages/DetailPage';
 if (process.env.REACT_APP_BASE_URL) {
   axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;
 }
+// Hack to disable cache from disk
+axios.defaults.params = {
+  t: new Date().getTime(),
+};
 
 function App() {
   return (
