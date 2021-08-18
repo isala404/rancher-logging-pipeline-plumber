@@ -90,7 +90,11 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 
 	extraLabels := GetLabels("pod-simulation", &flowTest)
 
-	simulationPod.ObjectMeta.Labels = referencePod.ObjectMeta.Labels
+	if referencePod.ObjectMeta.Labels != nil {
+		simulationPod.ObjectMeta.Labels = referencePod.ObjectMeta.Labels
+	} else {
+		simulationPod.ObjectMeta.Labels = make(map[string]string)
+	}
 
 	for k, v := range extraLabels {
 		simulationPod.ObjectMeta.Labels[k] = v
