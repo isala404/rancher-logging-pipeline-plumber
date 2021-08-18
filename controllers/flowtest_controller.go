@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
@@ -58,7 +60,6 @@ type FlowTestReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
 func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
-
 	logger.Info("Reconciling")
 
 	var flowTest loggingplumberv1alpha1.FlowTest
@@ -78,19 +79,22 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	ctx = context.WithValue(ctx, "flowTest", flowTest)
 
+	// Set the default state (CDR default doesn't work for some reason)
 	if flowTest.Status.Status == "" {
 		flowTest.Status.Status = loggingplumberv1alpha1.Created
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to update flowtest status")
 			return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
 		}
-		return ctrl.Result{}, nil
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Created {
 		if err := r.provisionResource(ctx); err != nil {
 			return ctrl.Result{}, r.setErrorStatus(ctx, err)
 		}
+		// Give 1 minute to resource to provisioned
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Completed {
@@ -104,7 +108,6 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Running {
-		oneMinuteAfterCreation := flowTest.CreationTimestamp.Add(1 * time.Minute)
 		fiveMinuteAfterCreation := flowTest.CreationTimestamp.Add(5 * time.Minute)
 		// Timeout
 		if time.Now().After(fiveMinuteAfterCreation) {
@@ -114,24 +117,32 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
 			}
 			return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
-		} else if time.Now().After(oneMinuteAfterCreation) { // Give 1 minute to resource to provisioned
-			logger.V(1).Info("checking log indexes")
-			if err := r.checkForPassingFlowTest(ctx); err != nil {
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, err
-			}
-		} else {
-			return ctrl.Result{RequeueAfter: oneMinuteAfterCreation.Sub(time.Now())}, nil
+		}
+
+		logger.V(1).Info("checking log indexes")
+		if err := r.checkForPassingFlowTest(ctx); err != nil {
+			return ctrl.Result{RequeueAfter: 30 * time.Second}, err
 		}
 	}
 
-	return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *FlowTestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&loggingplumberv1alpha1.FlowTest{}).
+		WithEventFilter(eventFilter()).
 		Complete(r)
+}
+
+func eventFilter() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			// Ignore updates to CDR status in which case metadata.Generation does not change
+			return e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()
+		},
+	}
 }
 
 func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error {
