@@ -16,6 +16,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+const (
+	EventReasonProvision string = "Provision"
+	EventReasonCleanup          = "Cleanup"
+	EventReasonReconcile        = "Reconcile"
+)
+
 func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.Flow, flowv1beta1.Output) {
 	flowTemplate := flowv1beta1.Flow{
 		TypeMeta: metav1.TypeMeta{
@@ -127,7 +133,6 @@ func (r *FlowTestReconciler) setErrorStatus(ctx context.Context, err error) erro
 	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
 	if err != nil {
 		flowTest.Status.Status = loggingplumberv1alpha1.Error
-
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to update flowtest status")
 			return err

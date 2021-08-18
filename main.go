@@ -106,6 +106,8 @@ func main() {
 		LogOutputImage:      logOutputImage,
 		Client:              mgr.GetClient(),
 		Scheme:              mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("flowtest-controller"),
+
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "FlowTest")
 		os.Exit(1)

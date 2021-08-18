@@ -80,7 +80,7 @@ setup: ## Download controller-gen and  locally if necessary.
 run: manifests generate ## Run a controller from your host.
 	go run ./main.go
 
-build:
+build: update-chart
 	source scripts/version && scripts/build
 
 ##@ Deployment

@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/tools/record"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -40,7 +42,8 @@ type FlowTestReconciler struct {
 	PodSimulatorImage   Image
 	LogOutputImage      Image
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows;clusterflows;outputs;clusteroutputs,verbs=get;watch;list;create;delete
@@ -49,6 +52,7 @@ type FlowTestReconciler struct {
 //+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=pods;services;configmaps;namespaces,verbs=get;watch;list;create;delete
 //+kubebuilder:rbac:groups="",resources=pods/log,verbs=get;list
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -84,26 +88,31 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		flowTest.Status.Status = loggingplumberv1alpha1.Created
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to update flowtest status")
-			return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
+			return ctrl.Result{}, err
 		}
 		return ctrl.Result{Requeue: true}, nil
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Created {
 		if err := r.provisionResource(ctx); err != nil {
+			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonProvision, fmt.Sprintf("error while provision flow resources: %s", err.Error()))
 			return ctrl.Result{}, r.setErrorStatus(ctx, err)
 		}
+		r.Recorder.Event(&flowTest, v1.EventTypeNormal, EventReasonProvision, "all the need resources were scheduled")
 		// Give 1 minute to resource to provisioned
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	if flowTest.Status.Status == loggingplumberv1alpha1.Completed {
 		if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
+			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonCleanup, fmt.Sprintf("error while cleaning up flow resources: %s", err.Error()))
 			return ctrl.Result{}, r.setErrorStatus(ctx, err)
 		}
 		if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
+			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonCleanup, fmt.Sprintf("error while cleaning up aggregator resources: %s", err.Error()))
 			return ctrl.Result{}, r.setErrorStatus(ctx, err)
 		}
+		r.Recorder.Event(&flowTest, v1.EventTypeNormal, EventReasonCleanup, "all the provisioned resources were scheduled to be deleted")
 		return ctrl.Result{Requeue: false}, nil
 	}
 
@@ -114,15 +123,17 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			flowTest.Status.Status = loggingplumberv1alpha1.Completed
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to update flowtest status")
-				return ctrl.Result{}, r.setErrorStatus(ctx, client.IgnoreNotFound(err))
+				return ctrl.Result{}, nil
 			}
 			return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 		}
 
 		logger.V(1).Info("checking log indexes")
-		if err := r.checkForPassingFlowTest(ctx); err != nil {
-			return ctrl.Result{RequeueAfter: 30 * time.Second}, err
+		err := r.checkForPassingFlowTest(ctx)
+		if err != nil {
+			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonReconcile, fmt.Sprintf("error while checking log indexes: %s", err.Error()))
 		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, err
 	}
 
 	return ctrl.Result{}, nil

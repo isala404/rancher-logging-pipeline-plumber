@@ -2,7 +2,6 @@ apiVersion: logging.banzaicloud.io/v1beta1
 kind: Flow
 metadata:
   name: busybox-echo
-  namespace: namespace-1
   labels:
     loggingplumber.isala.me/test: simulations
 spec:
@@ -28,7 +27,6 @@ apiVersion: logging.banzaicloud.io/v1beta1
 kind: Output
 metadata:
   name: busybox-echo
-  namespace: namespace-1
   labels:
     loggingplumber.isala.me/test: simulations
 spec:
@@ -81,7 +79,6 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  namespace: namespace-1
   name: busybox-echo
   labels:
     loggingplumber.isala.me/test: simulations
