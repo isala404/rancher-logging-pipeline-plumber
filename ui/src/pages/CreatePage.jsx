@@ -5,6 +5,7 @@ import { useForm, Controller, useWatch } from 'react-hook-form';
 import {
   InputLabel, TextField, Select, MenuItem, Paper, Grid, Button, FormControl,
 } from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
 import ParseTextarea from '../components/ParseTextarea';
 import ControlledAutocomplete from '../components/ControlledAutocomplete';
@@ -23,9 +24,13 @@ export default function CreateView() {
   const referencePodNS = useWatch({ control, name: 'spec.referencePod.namespace' });
   const referenceFlowKind = useWatch({ control, name: 'spec.referenceFlow.kind' });
   const referenceFlowNS = useWatch({ control, name: 'spec.referenceFlow.namespace' });
+  const history = useHistory();
 
-  const onSubmit = (data) => {
-    createFlowTest(data);
+  const onSubmit = async (data) => {
+    const created = await createFlowTest(data);
+    if (created) {
+      setTimeout(() => { history.push('/'); }, 700);
+    }
   };
 
   React.useEffect(async () => {
