@@ -26,7 +26,6 @@ apiVersion: loggingplumber.isala.me/v1alpha1
 kind: FlowTest
 metadata:
   name: clusterflowtest-sample
-  namespace: namespace-2
   labels:
     app.kubernetes.io/name: pod-simulation
     app.kubernetes.io/managed-by: logging-pipeline-plumber

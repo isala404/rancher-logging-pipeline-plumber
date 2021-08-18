@@ -3,11 +3,11 @@ package controllers
 import (
 	"context"
 	"fmt"
-
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -147,5 +147,21 @@ func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 		logger.V(1).Info(fmt.Sprintf("%s deleted", resource.Kind), "uuid", resource.GetUID(), "name", resource.GetName())
 	}
 
+	return nil
+}
+
+func (r *FlowTestReconciler) deleteResources(ctx context.Context, finalizerName string) error {
+	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+	if err := r.cleanUpResources(ctx, flowTest.ObjectMeta.Name); client.IgnoreNotFound(err) != nil {
+		return err
+	}
+	if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
+		return err
+	}
+	// remove our finalizer from the list and update it.
+	controllerutil.RemoveFinalizer(&flowTest, finalizerName)
+	if err := r.Update(ctx, &flowTest); err != nil {
+		return err
+	}
 	return nil
 }

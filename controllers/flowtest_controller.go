@@ -22,13 +22,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -67,63 +67,62 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger.Info("Reconciling")
 
 	var flowTest loggingplumberv1alpha1.FlowTest
-	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil {
-		if apierrors.IsNotFound(err) {
-			if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
-				return ctrl.Result{}, err
-			}
-			if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
-				return ctrl.Result{}, err
-			}
-		} else {
-			logger.Error(err, "failed to get the flowtest")
-		}
-		return ctrl.Result{Requeue: false}, client.IgnoreNotFound(err)
+	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != client.IgnoreNotFound(err) {
+		logger.Error(err, "failed to get the flowtest")
+		return ctrl.Result{Requeue: false}, err
 	}
 
 	ctx = context.WithValue(ctx, "flowTest", flowTest)
 
-	// Set the default state (CDR default doesn't work for some reason)
-	if flowTest.Status.Status == "" {
+	// name of our custom finalizer
+	finalizerName := "flowtests.loggingplumber.isala.me/finalizer"
+	// examine DeletionTimestamp to determine if object is under deletion
+	if !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
+		if err := r.deleteResources(ctx, finalizerName); err != nil {
+			// if fail to delete the external dependency here, return with error
+			// so that it can be retried
+			return ctrl.Result{Requeue: true}, err
+		}
+		// Stop reconciliation as the item is being deleted
+		return ctrl.Result{}, nil
+	}
+
+	// Reconcile depending on status
+	switch flowTest.Status.Status {
+
+	// This will run only at first iteration
+	case "":
+		// Set the finalizer
+		controllerutil.AddFinalizer(&flowTest, finalizerName)
+		if err := r.Update(ctx, &flowTest); err != nil {
+			logger.Error(err, "failed to update flowtest status")
+			return ctrl.Result{Requeue: true}, err
+		}
+		// Set the status
 		flowTest.Status.Status = loggingplumberv1alpha1.Created
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to update flowtest status")
-			return ctrl.Result{}, err
+			return ctrl.Result{Requeue: true}, err
 		}
 		return ctrl.Result{Requeue: true}, nil
-	}
 
-	if flowTest.Status.Status == loggingplumberv1alpha1.Created {
+	case loggingplumberv1alpha1.Created:
 		if err := r.provisionResource(ctx); err != nil {
 			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonProvision, fmt.Sprintf("error while provision flow resources: %s", err.Error()))
-			return ctrl.Result{}, r.setErrorStatus(ctx, err)
+			return ctrl.Result{Requeue: true}, r.setErrorStatus(ctx, err)
 		}
 		r.Recorder.Event(&flowTest, v1.EventTypeNormal, EventReasonProvision, "all the need resources were scheduled")
 		// Give 1 minute to resource to provisioned
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
-	}
 
-	if flowTest.Status.Status == loggingplumberv1alpha1.Completed {
-		if err := r.cleanUpResources(ctx, req.Name); client.IgnoreNotFound(err) != nil {
-			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonCleanup, fmt.Sprintf("error while cleaning up flow resources: %s", err.Error()))
-			return ctrl.Result{}, r.setErrorStatus(ctx, err)
-		}
-		if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
-			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonCleanup, fmt.Sprintf("error while cleaning up aggregator resources: %s", err.Error()))
-			return ctrl.Result{}, r.setErrorStatus(ctx, err)
-		}
-		r.Recorder.Event(&flowTest, v1.EventTypeNormal, EventReasonCleanup, "all the provisioned resources were scheduled to be deleted")
-		return ctrl.Result{Requeue: false}, nil
-	}
-
-	if flowTest.Status.Status == loggingplumberv1alpha1.Running {
+	case loggingplumberv1alpha1.Running:
 		fiveMinuteAfterCreation := flowTest.CreationTimestamp.Add(5 * time.Minute)
 		// Timeout
 		if time.Now().After(fiveMinuteAfterCreation) {
 			flowTest.Status.Status = loggingplumberv1alpha1.Completed
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to update flowtest status")
-				return ctrl.Result{}, nil
+				return ctrl.Result{Requeue: true}, nil
 			}
 			return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 		}
@@ -134,6 +133,14 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonReconcile, fmt.Sprintf("error while checking log indexes: %s", err.Error()))
 		}
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, err
+
+	case loggingplumberv1alpha1.Completed:
+		if err := r.deleteResources(ctx, finalizerName); err != nil {
+			return ctrl.Result{Requeue: true}, err
+		}
+		r.Recorder.Event(&flowTest, v1.EventTypeNormal, EventReasonCleanup, "all the provisioned resources were scheduled to be deleted")
+		return ctrl.Result{}, nil
+
 	}
 
 	return ctrl.Result{}, nil
