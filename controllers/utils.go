@@ -36,7 +36,7 @@ func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggi
 		Spec: flowv1beta1.FlowSpec{
 			LocalOutputRefs: nil,
 			Match: []flowv1beta1.Match{{
-				Select: &flowv1beta1.Select{Labels: extraLabels},
+				//Select: &flowv1beta1.Select{Labels: extraLabels},
 			}},
 			Filters: []flowv1beta1.Filter{{
 				Grep: &filters.GrepConfig{
@@ -87,7 +87,7 @@ func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, 
 		Spec: flowv1beta1.ClusterFlowSpec{
 			GlobalOutputRefs: nil,
 			Match: []flowv1beta1.ClusterMatch{{
-				ClusterSelect: &flowv1beta1.ClusterSelect{Labels: extraLabels},
+				//ClusterSelect: &flowv1beta1.ClusterSelect{Labels: extraLabels},
 			}},
 			Filters: []flowv1beta1.Filter{{
 				Grep: &filters.GrepConfig{

@@ -143,7 +143,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 
 		i := 0
 		flowTemplate, outTemplate := r.clusterFlowTemplates(referenceFlow, *flowTest, extraLabels)
-		for x := 1; x <= len(referenceFlow.Spec.Match); x++ {
+		for x := 0; x <= len(referenceFlow.Spec.Match)-1; x++ {
 			targetFlow := *flowTemplate.DeepCopy()
 			targetOutput := *outTemplate.DeepCopy()
 
@@ -158,7 +158,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 
 			targetFlow.Spec.GlobalOutputRefs = []string{targetOutput.ObjectMeta.Name}
 
-			targetFlow.Spec.Match = append(targetFlow.Spec.Match, referenceFlow.Spec.Match[:x]...)
+			targetFlow.Spec.Match = append(targetFlow.Spec.Match, referenceFlow.Spec.Match[x])
 
 			if err = r.Create(ctx, &targetOutput); err != nil {
 				logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
@@ -221,7 +221,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 		i := 0
 		flowTemplate, outTemplate := r.flowTemplates(referenceFlow, *flowTest, extraLabels)
 
-		for x := 1; x <= len(referenceFlow.Spec.Match); x++ {
+		for x := 0; x <= len(referenceFlow.Spec.Match)-1; x++ {
 			targetFlow := *flowTemplate.DeepCopy()
 			targetOutput := *outTemplate.DeepCopy()
 
@@ -236,7 +236,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 
 			targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
 
-			targetFlow.Spec.Match = append(targetFlow.Spec.Match, referenceFlow.Spec.Match[:x]...)
+			targetFlow.Spec.Match = append(targetFlow.Spec.Match, referenceFlow.Spec.Match[x])
 
 			if err = r.Create(ctx, &targetOutput); err != nil {
 				logger.Error(err, fmt.Sprintf("failed to deploy Flow #%d for %s", i, referenceFlow.ObjectMeta.Name))
