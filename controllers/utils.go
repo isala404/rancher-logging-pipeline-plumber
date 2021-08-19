@@ -64,7 +64,7 @@ func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggi
 				Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc", r.AggregatorNamespace),
 				Buffer: &output.Buffer{
 					FlushMode:     "interval",
-					FlushInterval: "10s",
+					FlushInterval: "1s",
 				},
 			},
 		},
@@ -118,7 +118,7 @@ func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, 
 					Endpoint: fmt.Sprintf("http://logging-plumber-log-aggregator.%s.svc", r.AggregatorNamespace),
 					Buffer: &output.Buffer{
 						FlushMode:     "interval",
-						FlushInterval: "10s",
+						FlushInterval: "1s",
 					},
 				},
 			},
