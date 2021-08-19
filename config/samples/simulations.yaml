@@ -15,13 +15,13 @@ spec:
         labels:
           loggingplumber.isala.me/test: simulations
   filters:
-    - record_modifier:
-        records:
-          - foo: "bar"
     - grep:
         regexp:
           - key: first
             pattern: /^5\d\d$/
+    - record_modifier:
+        records:
+          - foo: "bar"
 ---
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Output

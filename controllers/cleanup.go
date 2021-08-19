@@ -107,16 +107,20 @@ func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 	logger := log.FromContext(ctx)
 
 	var flowTests loggingplumberv1alpha1.FlowTestList
-	if err := r.List(ctx, &flowTests, &client.MatchingLabels{"app.kubernetes.io/created-by": "logging-plumber"}); err != nil {
+	if err := r.List(ctx, &flowTests); err != nil {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flowTests.Kind))
 		return err
 	}
-	for _, flowTest := range flowTests.Items {
-		if flowTest.Status.Status != loggingplumberv1alpha1.Completed {
-			logger.V(1).Info("unfinished flowtest found, skipping cleanUpOutputResources")
-			return nil
+	if len(flowTests.Items) > 1 {
+		for _, flowTest := range flowTests.Items {
+			if flowTest.Status.Status != loggingplumberv1alpha1.Completed && !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
+				logger.V(1).Info("unfinished flowtest found, skipping cleanup of log-aggregator")
+				return nil
+			}
 		}
 	}
+
+	logger.V(1).Info("no running flowtest found, cleaning up log-aggregator")
 
 	matchingLabels := &client.MatchingLabels{"loggingplumber.isala.me/component": "log-aggregator"}
 	var podList v1.PodList
@@ -152,6 +156,8 @@ func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 
 func (r *FlowTestReconciler) deleteResources(ctx context.Context, finalizerName string) error {
 	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+	logger := log.FromContext(ctx)
+
 	if err := r.cleanUpResources(ctx, flowTest.ObjectMeta.Name); client.IgnoreNotFound(err) != nil {
 		return err
 	}
@@ -161,6 +167,7 @@ func (r *FlowTestReconciler) deleteResources(ctx context.Context, finalizerName 
 	// remove our finalizer from the list and update it.
 	controllerutil.RemoveFinalizer(&flowTest, finalizerName)
 	if err := r.Update(ctx, &flowTest); err != nil {
+		logger.Error(err, "failed to remove the finalizer")
 		return err
 	}
 	return nil

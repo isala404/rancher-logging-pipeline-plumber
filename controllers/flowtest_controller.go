@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -67,7 +68,15 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger.Info("Reconciling")
 
 	var flowTest loggingplumberv1alpha1.FlowTest
-	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != client.IgnoreNotFound(err) {
+	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil {
+		// all the resources are already deleted
+		if apierrors.IsNotFound(err) {
+			// Remove if log aggregator is still running
+			if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
+				return ctrl.Result{Requeue: true}, err
+			}
+			return ctrl.Result{Requeue: false}, nil
+		}
 		logger.Error(err, "failed to get the flowtest")
 		return ctrl.Result{Requeue: false}, err
 	}
@@ -84,7 +93,12 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{Requeue: true}, err
 		}
 		// Stop reconciliation as the item is being deleted
-		return ctrl.Result{}, nil
+		return ctrl.Result{Requeue: false}, nil
+	}
+
+	if flowTest.ObjectMeta.Name == "" {
+		logger.V(-1).Info("flowtest without a name queued")
+		return ctrl.Result{Requeue: false}, nil
 	}
 
 	// Reconcile depending on status
@@ -95,15 +109,16 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		// Set the finalizer
 		controllerutil.AddFinalizer(&flowTest, finalizerName)
 		if err := r.Update(ctx, &flowTest); err != nil {
-			logger.Error(err, "failed to update flowtest status")
+			logger.Error(err, "failed to add finalizer")
 			return ctrl.Result{Requeue: true}, err
 		}
 		// Set the status
 		flowTest.Status.Status = loggingplumberv1alpha1.Created
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
-			logger.Error(err, "failed to update flowtest status")
+			logger.Error(err, "failed to set status as created")
 			return ctrl.Result{Requeue: true}, err
 		}
+		r.Recorder.Event(&flowTest, v1.EventTypeNormal, EventReasonProvision, "moved to created state")
 		return ctrl.Result{Requeue: true}, nil
 
 	case loggingplumberv1alpha1.Created:
@@ -121,7 +136,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if time.Now().After(fiveMinuteAfterCreation) {
 			flowTest.Status.Status = loggingplumberv1alpha1.Completed
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
-				logger.Error(err, "failed to update flowtest status")
+				logger.Error(err, "failed to set status as completed")
 				return ctrl.Result{Requeue: true}, nil
 			}
 			return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
