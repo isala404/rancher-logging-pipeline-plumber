@@ -22,7 +22,7 @@ const (
 	EventReasonReconcile        = "Reconcile"
 )
 
-func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.Flow, flowv1beta1.Output) {
+func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest) (flowv1beta1.Flow, flowv1beta1.Output) {
 	flowTemplate := flowv1beta1.Flow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -35,9 +35,7 @@ func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggi
 		},
 		Spec: flowv1beta1.FlowSpec{
 			LocalOutputRefs: nil,
-			Match: []flowv1beta1.Match{{
-				//Select: &flowv1beta1.Select{Labels: extraLabels},
-			}},
+			Match:           nil,
 			Filters: []flowv1beta1.Filter{{
 				Grep: &filters.GrepConfig{
 					Regexp: []filters.RegexpSection{{
@@ -73,7 +71,7 @@ func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggi
 	return flowTemplate, outTemplate
 }
 
-func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv1alpha1.FlowTest, extraLabels map[string]string) (flowv1beta1.ClusterFlow, flowv1beta1.ClusterOutput) {
+func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv1alpha1.FlowTest) (flowv1beta1.ClusterFlow, flowv1beta1.ClusterOutput) {
 	flowTemplate := flowv1beta1.ClusterFlow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -86,9 +84,7 @@ func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, 
 		},
 		Spec: flowv1beta1.ClusterFlowSpec{
 			GlobalOutputRefs: nil,
-			Match: []flowv1beta1.ClusterMatch{{
-				//ClusterSelect: &flowv1beta1.ClusterSelect{Labels: extraLabels},
-			}},
+			Match:            nil,
 			Filters: []flowv1beta1.Filter{{
 				Grep: &filters.GrepConfig{
 					Regexp: []filters.RegexpSection{{

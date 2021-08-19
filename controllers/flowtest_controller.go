@@ -68,9 +68,9 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger.Info("Reconciling")
 
 	var flowTest loggingplumberv1alpha1.FlowTest
-	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil  {
+	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil {
 		// all the resources are already deleted
-		if apierrors.IsNotFound(err){
+		if apierrors.IsNotFound(err) {
 			// Remove if log aggregator is still running
 			if err := r.cleanUpOutputResources(ctx); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{Requeue: true}, err
@@ -96,7 +96,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{Requeue: false}, nil
 	}
 
-	if flowTest.ObjectMeta.Name == ""{
+	if flowTest.ObjectMeta.Name == "" {
 		logger.V(-1).Info("flowtest without a name queued")
 		return ctrl.Result{Requeue: false}, nil
 	}
