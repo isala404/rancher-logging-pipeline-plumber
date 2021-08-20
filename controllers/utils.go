@@ -39,8 +39,10 @@ func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggi
 			Filters: []flowv1beta1.Filter{{
 				Grep: &filters.GrepConfig{
 					Regexp: []filters.RegexpSection{{
+						// Make sure flowtest-uuid is present in logs
+						// So logs doesn't get leaked from other pods
 						Key:     "kubernetes",
-						Pattern: ".*loggingplumber.isala.me\\/flowtest-uuid.*",
+						Pattern: fmt.Sprintf(".*%s.*", flowTest.ObjectMeta.UID),
 					}},
 				},
 			}},
@@ -88,10 +90,10 @@ func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, 
 			Filters: []flowv1beta1.Filter{{
 				Grep: &filters.GrepConfig{
 					Regexp: []filters.RegexpSection{{
-						// Make sure "loggingplumber.isala.me/flowtest-uuid" label is present
-						// To prevent data filter out logs from reference pod
+						// Make sure flowtest-uuid is present in logs
+						// So logs doesn't get leaked from other pods
 						Key:     "kubernetes",
-						Pattern: ".*loggingplumber.isala.me\\/flowtest-uuid.*",
+						Pattern: fmt.Sprintf(".*%s.*", flowTest.ObjectMeta.UID),
 					}},
 				},
 			}},
