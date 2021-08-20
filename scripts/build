@@ -2,13 +2,8 @@
 
 export DOCKER_BUILDKIT=1
 
-docker build -t "$CONTROLLER_IMAGE_NAME":"$VERSION" . || exit 1
-docker image tag "$CONTROLLER_IMAGE_NAME":"$VERSION" "$CONTROLLER_IMAGE_NAME":"$IMAGE_TAG" || exit 1
-
-pushd pod-simulator || exit
-    docker build -t "$SIMULATOR_IMAGE_NAME":"$VERSION" .  || exit 1
-    docker image tag "$SIMULATOR_IMAGE_NAME":"$VERSION" "$SIMULATOR_IMAGE_NAME":"$IMAGE_TAG" || exit 1
-popd || exit
+docker build -t "$IMAGE_NAME":"$VERSION" . || exit 1
+docker image tag "$IMAGE_NAME":"$VERSION" "$IMAGE_NAME":"$IMAGE_TAG" || exit 1
 
 yq e -i '.version = strenv(CHART_VERSION)' charts/logging-pipeline-plumber/Chart.yaml
 yq e -i '.appVersion = "v" + strenv(CHART_VERSION)' charts/logging-pipeline-plumber/Chart.yaml

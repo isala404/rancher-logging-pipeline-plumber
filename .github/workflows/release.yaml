@@ -17,8 +17,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: make build
-      - run: docker push $CONTROLLER_IMAGE_NAME:$VERSION
-      - run: docker push $SIMULATOR_IMAGE_NAME:$VERSION
+      - run: docker push $IMAGE_NAME:$VERSION
       - uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         env:

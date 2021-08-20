@@ -3,7 +3,7 @@ name: push image
 on:
   push:
     branches:
-      - master
+      - main
       - release/*
 
 jobs:
@@ -19,7 +19,5 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - run: make build
-      - run: docker push $CONTROLLER_IMAGE_NAME:$VERSION 
-      - run: docker push $CONTROLLER_IMAGE_NAME:$IMAGE_TAG
-      - run: docker push $SIMULATOR_IMAGE_NAME:$VERSION 
-      - run: docker push $SIMULATOR_IMAGE_NAME:$IMAGE_TAG
+      - run: docker push $IMAGE_NAME:$VERSION 
+      - run: docker push $IMAGE_NAME:$IMAGE_TAG

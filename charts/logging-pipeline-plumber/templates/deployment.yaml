@@ -33,11 +33,12 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          command: ["controller"]
           args: [
             "-aggregator-namespace={{ .Release.Namespace }}",
-            "-pod-simulator-image-repository={{ .Values.podSimulatorImage.repository }}",
-            "-pod-simulator-image-tag={{ .Values.podSimulatorImage.tag | default .Chart.AppVersion }}",
-            "-pod-simulator-image-pull-policy={{ .Values.podSimulatorImage.pullPolicy }}",
+            "-pod-simulator-image-repository={{ .Values.image.repository }}",
+            "-pod-simulator-image-tag={{ .Values.image.tag | default .Chart.AppVersion }}",
+            "-pod-simulator-image-pull-policy={{ .Values.image.pullPolicy }}",
             "-log-output-image-repository={{ .Values.logOutputImage.repository }}",
             "-log-output-image-tag={{ .Values.logOutputImage.tag }}",
             "-log-output-image-pull-policy={{ .Values.logOutputImage.pullPolicy }}",
