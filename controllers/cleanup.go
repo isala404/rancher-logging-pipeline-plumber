@@ -111,12 +111,10 @@ func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flowTests.Kind))
 		return err
 	}
-	if len(flowTests.Items) > 1 {
-		for _, flowTest := range flowTests.Items {
-			if flowTest.Status.Status != loggingplumberv1alpha1.Completed && !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
-				logger.V(1).Info("unfinished flowtest found, skipping cleanup of log-aggregator")
-				return nil
-			}
+	for _, flowTest := range flowTests.Items {
+		if flowTest.Status.Status != loggingplumberv1alpha1.Completed || !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
+			logger.V(1).Info("unfinished flowtest found, skipping cleanup of log-aggregator")
+			return nil
 		}
 	}
 
