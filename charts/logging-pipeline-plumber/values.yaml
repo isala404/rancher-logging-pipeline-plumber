@@ -15,11 +15,6 @@ logOutputImage:
   pullPolicy: IfNotPresent
   tag: "latest"
 
-podSimulatorImage:
-  repository: ghcr.io/mrsupiri/rancher-logging-pipeline-plumber/pod-simulator
-  pullPolicy: IfNotPresent
-  tag: ""
-
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
