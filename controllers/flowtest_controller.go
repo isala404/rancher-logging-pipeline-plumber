@@ -132,8 +132,8 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	case loggingplumberv1alpha1.Running:
 		fiveMinuteAfterCreation := flowTest.CreationTimestamp.Add(5 * time.Minute)
-		// Timeout
-		if time.Now().After(fiveMinuteAfterCreation) {
+		//        Timeout                            or    all test are passing
+		if time.Now().After(fiveMinuteAfterCreation) || allTestPassing(flowTest.Status) {
 			flowTest.Status.Status = loggingplumberv1alpha1.Completed
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to set status as completed")

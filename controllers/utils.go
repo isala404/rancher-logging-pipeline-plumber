@@ -214,3 +214,17 @@ func GetLabels(name string, flowTest *loggingplumberv1alpha1.FlowTest, labelsMap
 	labels["app.kubernetes.io/managed-by"] = "logging-pipeline-plumber"
 	return labels
 }
+
+func allTestPassing(status loggingplumberv1alpha1.FlowTestStatus) bool {
+	for _, status := range status.MatchStatus {
+		if !status {
+			return false
+		}
+	}
+	for _, status := range status.FilterStatus {
+		if !status {
+			return false
+		}
+	}
+	return true
+}
