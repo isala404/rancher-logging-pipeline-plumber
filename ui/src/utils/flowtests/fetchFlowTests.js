@@ -5,7 +5,7 @@ export default async function getFlowTests() {
   const flowTests = [];
 
   try {
-    const res = await axios('k8s/apis/loggingpipelineplumber.isala.me/v1alpha1/flowtests');
+    const res = await axios('k8s/apis/loggingpipelineplumber.isala.me/v1beta1/flowtests');
 
     res.data.items.forEach((flowTest, index) => {
       const totalTests = flowTest.status.filterStatus?.length + flowTest.status.matchStatus?.length;

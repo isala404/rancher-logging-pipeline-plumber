@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	loggingpipelineplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
+	loggingpipelineplumberv1beta1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -106,13 +106,13 @@ func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName 
 func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 	logger := log.FromContext(ctx)
 
-	var flowTests loggingpipelineplumberv1alpha1.FlowTestList
+	var flowTests loggingpipelineplumberv1beta1.FlowTestList
 	if err := r.List(ctx, &flowTests); err != nil {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flowTests.Kind))
 		return err
 	}
 	for _, flowTest := range flowTests.Items {
-		if flowTest.Status.Status != loggingpipelineplumberv1alpha1.Completed || !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
+		if flowTest.Status.Status != loggingpipelineplumberv1beta1.Completed || !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
 			logger.V(1).Info("unfinished flowtest found, skipping cleanup of log-aggregator")
 			return nil
 		}
@@ -153,7 +153,7 @@ func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 }
 
 func (r *FlowTestReconciler) deleteResources(ctx context.Context, finalizerName string) error {
-	flowTest := ctx.Value("flowTest").(loggingpipelineplumberv1alpha1.FlowTest)
+	flowTest := ctx.Value("flowTest").(loggingpipelineplumberv1beta1.FlowTest)
 	logger := log.FromContext(ctx)
 
 	if err := r.cleanUpResources(ctx, flowTest.ObjectMeta.Name); client.IgnoreNotFound(err) != nil {

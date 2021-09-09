@@ -26,7 +26,7 @@ spec:
     - jsonPath: .status.status
       name: Status
       type: string
-    name: v1alpha1
+    name: v1beta1
     schema:
       openAPIV3Schema:
         description: FlowTest is the Schema for the flowtests API
