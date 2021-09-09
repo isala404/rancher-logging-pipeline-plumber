@@ -11,7 +11,7 @@ import (
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	filters "github.com/banzaicloud/logging-operator/pkg/sdk/model/filter"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
-	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
+	loggingpipelineplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -22,7 +22,7 @@ const (
 	EventReasonReconcile        = "Reconcile"
 )
 
-func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggingplumberv1alpha1.FlowTest) (flowv1beta1.Flow, flowv1beta1.Output) {
+func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggingpipelineplumberv1alpha1.FlowTest) (flowv1beta1.Flow, flowv1beta1.Output) {
 	flowTemplate := flowv1beta1.Flow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -73,7 +73,7 @@ func (r *FlowTestReconciler) flowTemplates(flow flowv1beta1.Flow, flowTest loggi
 	return flowTemplate, outTemplate
 }
 
-func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingplumberv1alpha1.FlowTest) (flowv1beta1.ClusterFlow, flowv1beta1.ClusterOutput) {
+func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, flowTest loggingpipelineplumberv1alpha1.FlowTest) (flowv1beta1.ClusterFlow, flowv1beta1.ClusterOutput) {
 	flowTemplate := flowv1beta1.ClusterFlow{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "logging.banzaicloud.io/v1beta1",
@@ -128,9 +128,9 @@ func (r *FlowTestReconciler) clusterFlowTemplates(flow flowv1beta1.ClusterFlow, 
 
 func (r *FlowTestReconciler) setErrorStatus(ctx context.Context, err error) error {
 	logger := log.FromContext(ctx)
-	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+	flowTest := ctx.Value("flowTest").(loggingpipelineplumberv1alpha1.FlowTest)
 	if err != nil {
-		flowTest.Status.Status = loggingplumberv1alpha1.Error
+		flowTest.Status.Status = loggingpipelineplumberv1alpha1.Error
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to update flowtest status")
 			return err
@@ -196,7 +196,7 @@ func (r *FlowTestReconciler) checkIndex(ctx context.Context, indexName string) (
 	return false, nil
 }
 
-func GetLabels(name string, flowTest *loggingplumberv1alpha1.FlowTest, labelsMaps ...map[string]string) map[string]string {
+func GetLabels(name string, flowTest *loggingpipelineplumberv1alpha1.FlowTest, labelsMaps ...map[string]string) map[string]string {
 	labels := map[string]string{}
 
 	for _, labelsMap := range labelsMaps {
@@ -207,15 +207,15 @@ func GetLabels(name string, flowTest *loggingplumberv1alpha1.FlowTest, labelsMap
 
 	labels["app.kubernetes.io/name"] = name
 	if flowTest != nil {
-		labels["loggingplumber.isala.me/flowtest-uuid"] = string(flowTest.ObjectMeta.UID)
-		labels["loggingplumber.isala.me/flowtest"] = flowTest.ObjectMeta.Name
+		labels["loggingpipelineplumber.isala.me/flowtest-uuid"] = string(flowTest.ObjectMeta.UID)
+		labels["loggingpipelineplumber.isala.me/flowtest"] = flowTest.ObjectMeta.Name
 	}
 	labels["app.kubernetes.io/created-by"] = "logging-plumber"
 	labels["app.kubernetes.io/managed-by"] = "logging-pipeline-plumber"
 	return labels
 }
 
-func allTestPassing(status loggingplumberv1alpha1.FlowTestStatus) bool {
+func allTestPassing(status loggingpipelineplumberv1alpha1.FlowTestStatus) bool {
 	for _, status := range status.MatchStatus {
 		if !status {
 			return false

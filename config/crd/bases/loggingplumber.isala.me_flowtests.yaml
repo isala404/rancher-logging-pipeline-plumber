@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: flowtests.loggingplumber.isala.me
+  name: flowtests.loggingpipelineplumber.isala.me
 spec:
-  group: loggingplumber.isala.me
+  group: loggingpipelineplumber.isala.me
   names:
     kind: FlowTest
     listKind: FlowTestList

@@ -15,7 +15,7 @@ export const getFlow = async (namespace, kind, name) => {
 
 export const getFlowTest = async (namespace, name) => {
   try {
-    const res = await axios.get(`k8s/apis/loggingplumber.isala.me/v1alpha1/namespaces/${namespace}/flowtests/${name}`);
+    const res = await axios.get(`k8s/apis/loggingpipelineplumber.isala.me/v1alpha1/namespaces/${namespace}/flowtests/${name}`);
     return res.data;
   } catch (error) {
     snackbarUtils.error(`[HTTP error]: ${error.message}`);

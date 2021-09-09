@@ -45,7 +45,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - loggingplumber.isala.me
+  - loggingpipelineplumber.isala.me
   resources:
   - flowtests
   verbs:
@@ -57,13 +57,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - loggingplumber.isala.me
+  - loggingpipelineplumber.isala.me
   resources:
   - flowtests/finalizers
   verbs:
   - update
 - apiGroups:
-  - loggingplumber.isala.me
+  - loggingpipelineplumber.isala.me
   resources:
   - flowtests/status
   verbs:

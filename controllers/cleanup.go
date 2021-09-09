@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
+	loggingpipelineplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -14,7 +14,7 @@ import (
 func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName string) error {
 	logger := log.FromContext(ctx)
 
-	matchingLabels := &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTestName}
+	matchingLabels := &client.MatchingLabels{"loggingpipelineplumber.isala.me/flowtest": flowTestName}
 
 	var podList v1.PodList
 	if err := r.List(ctx, &podList, matchingLabels); client.IgnoreNotFound(err) != nil {
@@ -45,7 +45,7 @@ func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName 
 	}
 
 	var flows flowv1beta1.FlowList
-	if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
+	if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingpipelineplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flows.Kind))
 		//return err
 	}
@@ -59,7 +59,7 @@ func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName 
 	}
 
 	var outputs flowv1beta1.OutputList
-	if err := r.List(ctx, &outputs, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
+	if err := r.List(ctx, &outputs, &client.MatchingLabels{"loggingpipelineplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", outputs.Kind))
 		//return err
 	}
@@ -73,7 +73,7 @@ func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName 
 	}
 
 	var clusterFlows flowv1beta1.ClusterFlowList
-	if err := r.List(ctx, &clusterFlows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
+	if err := r.List(ctx, &clusterFlows, &client.MatchingLabels{"loggingpipelineplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", clusterFlows.Kind))
 		//return err
 	}
@@ -87,7 +87,7 @@ func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName 
 	}
 
 	var clusterOutputs flowv1beta1.ClusterOutputList
-	if err := r.List(ctx, &clusterOutputs, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
+	if err := r.List(ctx, &clusterOutputs, &client.MatchingLabels{"loggingpipelineplumber.isala.me/flowtest": flowTestName}); client.IgnoreNotFound(err) != nil {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", clusterOutputs.Kind))
 		//return err
 	}
@@ -106,13 +106,13 @@ func (r *FlowTestReconciler) cleanUpResources(ctx context.Context, flowTestName 
 func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 	logger := log.FromContext(ctx)
 
-	var flowTests loggingplumberv1alpha1.FlowTestList
+	var flowTests loggingpipelineplumberv1alpha1.FlowTestList
 	if err := r.List(ctx, &flowTests); err != nil {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flowTests.Kind))
 		return err
 	}
 	for _, flowTest := range flowTests.Items {
-		if flowTest.Status.Status != loggingplumberv1alpha1.Completed || !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
+		if flowTest.Status.Status != loggingpipelineplumberv1alpha1.Completed || !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
 			logger.V(1).Info("unfinished flowtest found, skipping cleanup of log-aggregator")
 			return nil
 		}
@@ -120,7 +120,7 @@ func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 
 	logger.V(1).Info("no running flowtest found, cleaning up log-aggregator")
 
-	matchingLabels := &client.MatchingLabels{"loggingplumber.isala.me/component": "log-aggregator"}
+	matchingLabels := &client.MatchingLabels{"loggingpipelineplumber.isala.me/component": "log-aggregator"}
 	var podList v1.PodList
 	if err := r.List(ctx, &podList, matchingLabels); client.IgnoreNotFound(err) != nil {
 		logger.Error(err, fmt.Sprintf("failed to get provisioned %s", podList.Kind))
@@ -153,7 +153,7 @@ func (r *FlowTestReconciler) cleanUpOutputResources(ctx context.Context) error {
 }
 
 func (r *FlowTestReconciler) deleteResources(ctx context.Context, finalizerName string) error {
-	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+	flowTest := ctx.Value("flowTest").(loggingpipelineplumberv1alpha1.FlowTest)
 	logger := log.FromContext(ctx)
 
 	if err := r.cleanUpResources(ctx, flowTest.ObjectMeta.Name); client.IgnoreNotFound(err) != nil {

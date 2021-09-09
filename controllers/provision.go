@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
+	loggingpipelineplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,7 +18,7 @@ import (
 
 func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 	logger := log.FromContext(ctx)
-	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+	flowTest := ctx.Value("flowTest").(loggingpipelineplumberv1alpha1.FlowTest)
 
 	logOutput := new(bytes.Buffer)
 	for _, line := range flowTest.Spec.SentMessages {
@@ -116,7 +116,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 		return err
 	}
 
-	flowTest.Status.Status = loggingplumberv1alpha1.Running
+	flowTest.Status.Status = loggingpipelineplumberv1alpha1.Running
 
 	if err := r.Status().Update(ctx, &flowTest); err != nil {
 		logger.Error(err, "failed to update flowtest status")
@@ -126,7 +126,7 @@ func (r *FlowTestReconciler) provisionResource(ctx context.Context) error {
 	return nil
 }
 
-func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels map[string]string, flowTest *loggingplumberv1alpha1.FlowTest) (err error) {
+func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels map[string]string, flowTest *loggingpipelineplumberv1alpha1.FlowTest) (err error) {
 	logger := log.FromContext(ctx)
 
 	// TODO: handle this sane way
@@ -149,12 +149,12 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 			targetOutput := *outTemplate.DeepCopy()
 
 			targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", flowTest.ObjectMeta.UID, i)
-			targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
-			targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
+			targetFlow.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+			targetFlow.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-type"] = "match"
 
 			targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", flowTest.ObjectMeta.UID, i)
-			targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
-			targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
+			targetOutput.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+			targetOutput.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-type"] = "match"
 			targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s/%s/", targetOutput.Spec.HTTPOutput.Endpoint, targetFlow.ObjectMeta.Name)
 
 			targetFlow.Spec.GlobalOutputRefs = []string{targetOutput.ObjectMeta.Name}
@@ -180,12 +180,12 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 			targetOutput := *outTemplate.DeepCopy()
 
 			targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", flowTest.ObjectMeta.UID, i)
-			targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "filter"
-			targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+			targetFlow.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-type"] = "filter"
+			targetFlow.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 
 			targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", flowTest.ObjectMeta.UID, i)
-			targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "filter"
-			targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+			targetOutput.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-type"] = "filter"
+			targetOutput.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 			targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s/%s/", targetOutput.Spec.HTTPOutput.Endpoint, targetFlow.ObjectMeta.Name)
 
 			targetFlow.Spec.GlobalOutputRefs = []string{targetOutput.ObjectMeta.Name}
@@ -230,12 +230,12 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 			targetOutput := *outTemplate.DeepCopy()
 
 			targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", flowTest.ObjectMeta.UID, i)
-			targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
-			targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
+			targetFlow.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+			targetFlow.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-type"] = "match"
 
 			targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-match", flowTest.ObjectMeta.UID, i)
-			targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
-			targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "match"
+			targetOutput.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+			targetOutput.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-type"] = "match"
 			targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s/%s/", targetOutput.Spec.HTTPOutput.Endpoint, targetFlow.ObjectMeta.Name)
 
 			targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
@@ -261,12 +261,12 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 			targetOutput := *outTemplate.DeepCopy()
 
 			targetFlow.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", flowTest.ObjectMeta.UID, i)
-			targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "filter"
-			targetFlow.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+			targetFlow.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-type"] = "filter"
+			targetFlow.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 
 			targetOutput.ObjectMeta.Name = fmt.Sprintf("%s-%d-filture", flowTest.ObjectMeta.UID, i)
-			targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-type"] = "filter"
-			targetOutput.ObjectMeta.Labels["loggingplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
+			targetOutput.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-type"] = "filter"
+			targetOutput.ObjectMeta.Labels["loggingpipelineplumber.isala.me/test-id"] = fmt.Sprintf("%d", i)
 			targetOutput.Spec.HTTPOutput.Endpoint = fmt.Sprintf("%s/%s/", targetOutput.Spec.HTTPOutput.Endpoint, targetFlow.ObjectMeta.Name)
 
 			targetFlow.Spec.LocalOutputRefs = []string{targetOutput.ObjectMeta.Name}
@@ -297,7 +297,7 @@ func (r *FlowTestReconciler) deploySlicedFlows(ctx context.Context, extraLabels 
 
 func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error {
 	logger := log.FromContext(ctx)
-	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+	flowTest := ctx.Value("flowTest").(loggingpipelineplumberv1alpha1.FlowTest)
 
 	var outputPod v1.Pod
 	if err := r.Get(ctx, client.ObjectKey{Name: "logging-plumber-log-aggregator", Namespace: flowTest.ObjectMeta.Namespace}, &outputPod); err != nil {
@@ -311,7 +311,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 					Name:      "logging-plumber-log-aggregator",
 					Namespace: r.AggregatorNamespace,
 					Labels: GetLabels("logging-plumber-log-aggregator", nil,
-						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
+						map[string]string{"loggingpipelineplumber.isala.me/component": "log-aggregator"}),
 				},
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{{
@@ -345,7 +345,7 @@ func (r *FlowTestReconciler) provisionOutputResource(ctx context.Context) error 
 					Name:      "logging-plumber-log-aggregator",
 					Namespace: r.AggregatorNamespace,
 					Labels: GetLabels("logging-plumber-log-aggregator", nil,
-						map[string]string{"loggingplumber.isala.me/component": "log-aggregator"}),
+						map[string]string{"loggingpipelineplumber.isala.me/component": "log-aggregator"}),
 				},
 				Spec: v1.ServiceSpec{
 					Ports: []v1.ServicePort{{
