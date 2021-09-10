@@ -5,7 +5,7 @@ metadata:
   name: flowtest-editor-role
 rules:
 - apiGroups:
-  - loggingplumber.isala.me
+  - loggingpipelineplumber.isala.me
   resources:
   - flowtests
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - loggingplumber.isala.me
+  - loggingpipelineplumber.isala.me
   resources:
   - flowtests/status
   verbs:

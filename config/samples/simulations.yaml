@@ -3,17 +3,17 @@ kind: Flow
 metadata:
   name: busybox-echo
   labels:
-    loggingplumber.isala.me/test: simulations
+    loggingpipelineplumber.isala.me/test: simulations
 spec:
   localOutputRefs:
     - busybox-echo
   match:
     - select:
         labels:
-          loggingplumber.isala.me/test: invalid
+          loggingpipelineplumber.isala.me/test: invalid
     - select:
         labels:
-          loggingplumber.isala.me/test: simulations
+          loggingpipelineplumber.isala.me/test: simulations
   filters:
     - grep:
         regexp:
@@ -28,7 +28,7 @@ kind: Output
 metadata:
   name: busybox-echo
   labels:
-    loggingplumber.isala.me/test: simulations
+    loggingpipelineplumber.isala.me/test: simulations
 spec:
   http:
     endpoint: "http://logging-plumber-log-aggregator.default.svc/busybox-echo/"
@@ -42,17 +42,17 @@ metadata:
   name: cluster-busybox-echo
   namespace: cattle-logging-system
   labels:
-    loggingplumber.isala.me/test: simulations
+    loggingpipelineplumber.isala.me/test: simulations
 spec:
   globalOutputRefs:
     - cluster-busybox-echo
   match:
     - select:
         labels:
-          loggingplumber.isala.me/test: invalid
+          loggingpipelineplumber.isala.me/test: invalid
     - select:
         labels:
-          loggingplumber.isala.me/test: simulations
+          loggingpipelineplumber.isala.me/test: simulations
   filters:
     - record_modifier:
         records:
@@ -68,7 +68,7 @@ metadata:
   name: cluster-busybox-echo
   namespace: cattle-logging-system
   labels:
-    loggingplumber.isala.me/test: simulations
+    loggingpipelineplumber.isala.me/test: simulations
 spec:
   http:
     endpoint: "http://logging-plumber-log-aggregator.default.svc/cluster-busybox-echo/"
@@ -81,7 +81,7 @@ kind: Pod
 metadata:
   name: busybox-echo
   labels:
-    loggingplumber.isala.me/test: simulations
+    loggingpipelineplumber.isala.me/test: simulations
 spec:
   containers:
     - name: busybox

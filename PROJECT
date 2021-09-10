@@ -9,8 +9,8 @@ resources:
     namespaced: true
   controller: true
   domain: isala.me
-  group: loggingplumber
+  group: loggingpipelineplumber
   kind: FlowTest
-  path: github.com/mrsupiri/logging-pipeline-plumber/api/v1alpha1
-  version: v1alpha1
+  path: github.com/mrsupiri/logging-pipeline-plumber/api/v1beta1
+  version: v1beta1
 version: "3"

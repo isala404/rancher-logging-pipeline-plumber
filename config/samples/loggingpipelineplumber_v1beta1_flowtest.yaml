@@ -1,4 +1,4 @@
-apiVersion: loggingplumber.isala.me/v1alpha1
+apiVersion: loggingpipelineplumber.isala.me/v1beta1
 kind: FlowTest
 metadata:
   name: flowtest-sample
@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: pod-simulation
     app.kubernetes.io/managed-by: logging-pipeline-plumber
     app.kubernetes.io/created-by: logging-plumber
-    loggingplumber.isala.me/flowtest: flowtest-sample
+    loggingpipelineplumber.isala.me/flowtest: flowtest-sample
 spec:
   referencePod:
     kind: Pod
@@ -22,7 +22,7 @@ spec:
     - "[2021-06-10T11:50:08Z] @INFO Amo ideoque die se at, caro aer, ad cor. 1375 ::0.263548"
     - "[2021-06-10T11:50:09Z] @INFO Se contexo servis inpiis erogo, diligit ita significaret eosdem. 1376 ::0.405282"
 ---
-apiVersion: loggingplumber.isala.me/v1alpha1
+apiVersion: loggingpipelineplumber.isala.me/v1beta1
 kind: FlowTest
 metadata:
   name: clusterflowtest-sample
@@ -30,7 +30,7 @@ metadata:
     app.kubernetes.io/name: pod-simulation
     app.kubernetes.io/managed-by: logging-pipeline-plumber
     app.kubernetes.io/created-by: logging-plumber
-    loggingplumber.isala.me/flowtest: clusterflowtest-sample
+    loggingpipelineplumber.isala.me/flowtest: clusterflowtest-sample
 spec:
   referencePod:
     kind: Pod

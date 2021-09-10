@@ -2,7 +2,7 @@ import axios from 'axios';
 import snackbarUtils from '../../libs/snackbarUtils';
 
 const flowTestSample = {
-  apiVersion: 'loggingplumber.isala.me/v1alpha1',
+  apiVersion: 'loggingpipelineplumber.isala.me/v1beta1',
   kind: 'FlowTest',
   namespace: 'default',
   metadata: {
@@ -10,7 +10,7 @@ const flowTestSample = {
     labels: {
       'app.kubernetes.io/managed-by': 'logging-pipeline-plumber',
       'app.kubernetes.io/created-by': 'logging-plumber',
-      'loggingplumber.isala.me/flowtest': 'flowtest-sample',
+      'loggingpipelineplumber.isala.me/flowtest': 'flowtest-sample',
     },
   },
   spec: {
@@ -26,7 +26,7 @@ export async function createFlowTest(data) {
   try {
     const flowTest = { ...flowTestSample, ...data };
     flowTest.spec.referencePod.kind = 'Pod';
-    const res = await axios.post(`k8s/apis/loggingplumber.isala.me/v1alpha1/namespaces/${flowTest.namespace}/flowtests`, flowTest);
+    const res = await axios.post(`k8s/apis/loggingpipelineplumber.isala.me/v1beta1/namespaces/${flowTest.namespace}/flowtests`, flowTest);
     if (res.status === 201) {
       snackbarUtils.success('FlowTest Created');
     }

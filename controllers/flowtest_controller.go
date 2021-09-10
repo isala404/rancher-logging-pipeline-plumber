@@ -29,7 +29,7 @@ import (
 	"time"
 
 	flowv1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	loggingplumberv1alpha1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1alpha1"
+	loggingpipelineplumberv1beta1 "github.com/mrsupiri/logging-pipeline-plumber/pkg/sdk/api/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -48,9 +48,9 @@ type FlowTestReconciler struct {
 }
 
 //+kubebuilder:rbac:groups=logging.banzaicloud.io,resources=flows;clusterflows;outputs;clusteroutputs,verbs=get;watch;list;create;delete
-//+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=loggingplumber.isala.me,resources=flowtests/finalizers,verbs=update
+//+kubebuilder:rbac:groups=loggingpipelineplumber.isala.me,resources=flowtests,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=loggingpipelineplumber.isala.me,resources=flowtests/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=loggingpipelineplumber.isala.me,resources=flowtests/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=pods;services;configmaps;namespaces,verbs=get;watch;list;create;delete
 //+kubebuilder:rbac:groups="",resources=pods/log,verbs=get;list
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
@@ -67,7 +67,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger := log.FromContext(ctx)
 	logger.Info("Reconciling")
 
-	var flowTest loggingplumberv1alpha1.FlowTest
+	var flowTest loggingpipelineplumberv1beta1.FlowTest
 	if err := r.Get(ctx, req.NamespacedName, &flowTest); err != nil {
 		// all the resources are already deleted
 		if apierrors.IsNotFound(err) {
@@ -84,7 +84,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	ctx = context.WithValue(ctx, "flowTest", flowTest)
 
 	// name of our custom finalizer
-	finalizerName := "flowtests.loggingplumber.isala.me/finalizer"
+	finalizerName := "flowtests.loggingpipelineplumber.isala.me/finalizer"
 	// examine DeletionTimestamp to determine if object is under deletion
 	if !flowTest.ObjectMeta.DeletionTimestamp.IsZero() {
 		if err := r.deleteResources(ctx, finalizerName); err != nil {
@@ -113,7 +113,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{Requeue: true}, err
 		}
 		// Set the status
-		flowTest.Status.Status = loggingplumberv1alpha1.Created
+		flowTest.Status.Status = loggingpipelineplumberv1beta1.Created
 		if err := r.Status().Update(ctx, &flowTest); err != nil {
 			logger.Error(err, "failed to set status as created")
 			return ctrl.Result{Requeue: true}, err
@@ -121,7 +121,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		r.Recorder.Event(&flowTest, v1.EventTypeNormal, EventReasonProvision, "moved to created state")
 		return ctrl.Result{Requeue: true}, nil
 
-	case loggingplumberv1alpha1.Created:
+	case loggingpipelineplumberv1beta1.Created:
 		if err := r.provisionResource(ctx); err != nil {
 			r.Recorder.Event(&flowTest, v1.EventTypeWarning, EventReasonProvision, fmt.Sprintf("error while provision flow resources: %s", err.Error()))
 			return ctrl.Result{Requeue: true}, r.setErrorStatus(ctx, err)
@@ -130,11 +130,11 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		// Give 1 minute to resource to provisioned
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 
-	case loggingplumberv1alpha1.Running:
+	case loggingpipelineplumberv1beta1.Running:
 		fiveMinuteAfterCreation := flowTest.CreationTimestamp.Add(5 * time.Minute)
 		//        Timeout                            or    all test are passing
 		if time.Now().After(fiveMinuteAfterCreation) || allTestPassing(flowTest.Status) {
-			flowTest.Status.Status = loggingplumberv1alpha1.Completed
+			flowTest.Status.Status = loggingpipelineplumberv1beta1.Completed
 			if err := r.Status().Update(ctx, &flowTest); err != nil {
 				logger.Error(err, "failed to set status as completed")
 				return ctrl.Result{Requeue: true}, nil
@@ -149,7 +149,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, err
 
-	case loggingplumberv1alpha1.Completed:
+	case loggingpipelineplumberv1beta1.Completed:
 		if err := r.deleteResources(ctx, finalizerName); err != nil {
 			return ctrl.Result{Requeue: true}, err
 		}
@@ -164,7 +164,7 @@ func (r *FlowTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 // SetupWithManager sets up the controller with the Manager.
 func (r *FlowTestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&loggingplumberv1alpha1.FlowTest{}).
+		For(&loggingpipelineplumberv1beta1.FlowTest{}).
 		WithEventFilter(eventFilter()).
 		Complete(r)
 }
@@ -180,7 +180,7 @@ func eventFilter() predicate.Predicate {
 
 func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error {
 	logger := log.FromContext(ctx)
-	flowTest := ctx.Value("flowTest").(loggingplumberv1alpha1.FlowTest)
+	flowTest := ctx.Value("flowTest").(loggingpipelineplumberv1beta1.FlowTest)
 
 	if flowTest.Spec.ReferenceFlow.Kind == "ClusterFlow" {
 		var flows flowv1beta1.ClusterFlowList
@@ -193,7 +193,7 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 			return err
 		}
 
-		if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
+		if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingpipelineplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
 			logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flows.Kind))
 			return err
 		}
@@ -216,7 +216,7 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 
 	} else {
 		var flows flowv1beta1.FlowList
-		if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
+		if err := r.List(ctx, &flows, &client.MatchingLabels{"loggingpipelineplumber.isala.me/flowtest": flowTest.ObjectMeta.Name}); client.IgnoreNotFound(err) != nil {
 			logger.Error(err, fmt.Sprintf("failed to get provisioned %s", flows.Kind))
 			return err
 		}
@@ -249,7 +249,7 @@ func (r *FlowTestReconciler) checkForPassingFlowTest(ctx context.Context) error 
 	return r.Status().Update(ctx, &flowTest)
 }
 
-func setPassingFilter(passingFilters []flowv1beta1.Filter, filters []flowv1beta1.Filter, flowTest *loggingplumberv1alpha1.FlowTest) {
+func setPassingFilter(passingFilters []flowv1beta1.Filter, filters []flowv1beta1.Filter, flowTest *loggingpipelineplumberv1beta1.FlowTest) {
 	for _, passingFilter := range passingFilters {
 		for i, filter := range filters {
 			if reflect.DeepEqual(passingFilter, filter) {
@@ -259,7 +259,7 @@ func setPassingFilter(passingFilters []flowv1beta1.Filter, filters []flowv1beta1
 	}
 }
 
-func setPassingMatches(passingMatches []flowv1beta1.Match, matches []flowv1beta1.Match, flowTest *loggingplumberv1alpha1.FlowTest) {
+func setPassingMatches(passingMatches []flowv1beta1.Match, matches []flowv1beta1.Match, flowTest *loggingpipelineplumberv1beta1.FlowTest) {
 	for _, passingFilter := range passingMatches {
 		for i, filter := range matches {
 			if reflect.DeepEqual(passingFilter, filter) {
@@ -269,7 +269,7 @@ func setPassingMatches(passingMatches []flowv1beta1.Match, matches []flowv1beta1
 	}
 }
 
-func setPassingClusterMatches(passingMatches []flowv1beta1.ClusterMatch, matches []flowv1beta1.ClusterMatch, flowTest *loggingplumberv1alpha1.FlowTest) {
+func setPassingClusterMatches(passingMatches []flowv1beta1.ClusterMatch, matches []flowv1beta1.ClusterMatch, flowTest *loggingpipelineplumberv1beta1.FlowTest) {
 	for _, passingFilter := range passingMatches {
 		for i, filter := range matches {
 			if reflect.DeepEqual(passingFilter, filter) {
